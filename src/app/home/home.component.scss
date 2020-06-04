@@ -1,0 +1,86 @@
+:host {
+    .toolbar {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        padding: 14px 12px;
+        background: white;
+        color: black;
+        box-shadow: 0 1px 12px #AAAAAA;
+    }
+
+    .content-layout {
+        display: flex;
+        flex-direction: column;
+        width: 600px;
+        padding: 12px;
+
+        .setting-layout {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 12px;
+
+            .title {
+                font-size: 14px;
+                color: #ed3330;
+                font-weight: bold;
+                margin-bottom: 12px;
+            }
+
+            .setting-item {
+                display: flex;
+                flex-direction: row;
+                margin-bottom: 6px;
+
+                .s-title {
+                    font-size: 14px;
+                    width: 150px;
+                }
+
+                .s-input {
+                    flex: 1;
+                }
+            }
+        }
+
+        .textarea-view {
+            height: 80px;
+        }
+    }
+
+    .loading-layout {
+        position: fixed;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.4);
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+    }
+
+    .item-layout {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        padding: 1px 0;
+
+        .left-title {
+            flex: 1;
+        }
+
+        .right-title {
+            width: 100px;
+            text-align: right;
+        }
+    }
+
+    .empty-layout {
+        flex: 1;
+        font-size: 12px;
+    }
+}
