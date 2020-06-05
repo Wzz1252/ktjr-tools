@@ -22,7 +22,7 @@ const fs = require('fs');
 /** 民生银行支持的最大查询次数 */
 const QUERY_MAX_DAYS = 183;
 /** 重试间隔 */
-const RETRY_INTERVAL = 200; // ms
+const RETRY_INTERVAL = 100; // ms
 /** 重试次数 */
 const RETRY_NUMBER = 60; // ms
 /** 图片宽度 */
