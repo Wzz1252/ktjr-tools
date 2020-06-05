@@ -14,6 +14,7 @@ export default class Task {
     private taskFailListener?: Function = null;
 
     private appExec?: any = null;
+    private isKill: boolean = false;
 
     constructor(command: string, index: string) {
         this.command = command;
@@ -42,6 +43,7 @@ export default class Task {
 
     public kill(): void {
         if (this.getStatus() === TaskStatusEnum.RUNNING) {
+            this.isKill = true;
             this.setStatus(TaskStatusEnum.ERROR);
             if (this.appExec) {
                 this.appExec.kill();
@@ -62,28 +64,38 @@ export default class Task {
     }
 
     private runExec(command: any) {
+        this.isKill = false;
         this.setStatus(TaskStatusEnum.RUNNING);
         setTimeout(() => {
-            if (this.taskStartListener) {
-                this.taskStartListener(this.getTag());
-            }
-            this.appExec = exec(command, (error, stdout, stderr) => {
-                console.log("xx: ", error);
-                console.log("x2:", stdout);
-                console.log("x3:", stderr);
-                if (stdout.indexOf("COMPLETE") != -1) {
-                    this.setStatus(TaskStatusEnum.SUCCESS);
-                    if (this.taskSuccessListener) {
-                        this.taskSuccessListener(this.getTag());
-                    }
-                } else {
+            this.runExecCommand(command);
+        }, 100);
+    }
+
+    private runExecCommand(command): void {
+        if (this.taskStartListener) {
+            this.taskStartListener(this.getTag());
+        }
+        this.appExec = exec(command, (error, stdout, stderr) => {
+            // console.log("xx: ", error);
+            // console.log("x2:", stdout);
+            // console.log("x3:", stderr);
+            if (stdout.indexOf("COMPLETE") != -1) {
+                this.setStatus(TaskStatusEnum.SUCCESS);
+                if (this.taskSuccessListener) {
+                    this.taskSuccessListener(this.getTag());
+                }
+            } else {
+                if (this.isKill) {
+                    // console.log("解析失败，任务退出");
                     this.setStatus(TaskStatusEnum.ERROR);
                     if (this.taskFailListener) {
                         this.taskFailListener(this.getTag());
                     }
+                } else {
+                    // console.log("解析失败，重试");
+                    this.runExec(command);
                 }
-            });
-        }, 100);
-
+            }
+        });
     }
 }
