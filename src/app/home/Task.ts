@@ -75,10 +75,11 @@ export default class Task {
         if (this.taskStartListener) {
             this.taskStartListener(this.getTag());
         }
+        console.log("命令: ", command);
         this.appExec = exec(command, (error, stdout, stderr) => {
-            // console.log("xx: ", error);
-            // console.log("x2:", stdout);
-            // console.log("x3:", stderr);
+            console.log("xx: ", error);
+            console.log("x2:", stdout);
+            console.log("x3:", stderr);
             if (stdout.indexOf("COMPLETE") != -1) {
                 this.setStatus(TaskStatusEnum.SUCCESS);
                 if (this.taskSuccessListener) {

@@ -31,11 +31,9 @@ export class HomeComponent implements OnInit {
     public filePath = "";
     public queueTask: QueueTask = null;
     public isRun: boolean = false;
+    public cursor: number = 0;
 
-    constructor(public router: Router,
-                public ref: ChangeDetectorRef,
-                private zone: NgZone,
-                public http: HttpClient) {
+    constructor(public router: Router, public ref: ChangeDetectorRef, private zone: NgZone, public http: HttpClient) {
     }
 
     public onKeyUpWebWaitTime() {
@@ -64,11 +62,19 @@ export class HomeComponent implements OnInit {
             return;
         }
         this.xlsxList = this.getMinShengBackXlsx(this.filePath);
-        let urls = "";
-        for (let i = 0; i < this.xlsxList.length; i++) {
-            urls += this.xlsxList[i].id + ",";
-        }
-        this.requestPost(urls, () => {
+
+        // let currentCursor = this.cursor;
+        // let nextCursor = Math.min(this.cursor + 2, this.xlsxList.length);
+        // let urls = "";
+        // for (let i = currentCursor; i < nextCursor; i++) {
+        //     urls += this.xlsxList[i].id + ",";
+        // }
+
+        console.log("this.xlsxList: ", this.xlsxList);
+        this.zone.run(() => this.isShow = true);
+        this.requestR(0, () => {
+            this.zone.run(() => this.isShow = false);
+            console.log("完成: ", this.xlsxList);
             this.queueTask = new QueueTask();
             this.queueTask.setTaskNumber(Number(this.evaluateInfo.taskNum));
             for (let i = 0; i < this.xlsxList.length; i++) {
@@ -82,6 +88,48 @@ export class HomeComponent implements OnInit {
             this.queueTask.setFailListener((index) => this.zone.run(() => this.xlsxList[index].status = "FAIL"));
             this.queueTask.setStartListener((index) => this.zone.run(() => this.xlsxList[index].status = "LOADING"));
         });
+
+        // let urls = "";
+        // for (let i = 0; i < this.xlsxList.length; i++) {
+        //     urls += this.xlsxList[i].id + ",";
+        // }
+
+        // this.requestPost(urls, () => {
+        //     this.queueTask = new QueueTask();
+        //     this.queueTask.setTaskNumber(Number(this.evaluateInfo.taskNum));
+        //     for (let i = 0; i < this.xlsxList.length; i++) {
+        //         this.queueTask.addTask(new Task(this.xlsxList[i].command, String(this.xlsxList[i].index)));
+        //     }
+        //     this.queueTask.setCompleteListener(() => {
+        //         this.zone.run(() => this.isRun = false);
+        //         alert("解析完成！");
+        //     });
+        //     this.queueTask.setSuccessListener((index) => this.zone.run(() => this.xlsxList[index].status = "SUCCESS"));
+        //     this.queueTask.setFailListener((index) => this.zone.run(() => this.xlsxList[index].status = "FAIL"));
+        //     this.queueTask.setStartListener((index) => this.zone.run(() => this.xlsxList[index].status = "LOADING"));
+        // });
+    }
+
+    private requestR(currentNum: number, success: Function): void {
+        let cursor = currentNum;
+        let nextCursor = Math.min(this.xlsxList.length, currentNum + 1);
+        if (cursor >= nextCursor) {
+            success();
+            return;
+        }
+        let urls = "";
+        for (let i = cursor; i < nextCursor; i++) {
+            urls += this.xlsxList[i].id + ",";
+        }
+        console.log("requestR: ", urls, "  cursor: ", cursor, "  nextCursor: ", nextCursor);
+        this.requestPost(urls, () => {
+            setTimeout(() => {
+                cursor = nextCursor;
+                this.requestR(cursor, success);
+            }, 200);
+        });
+        // cursor = nextCursor;
+        // this.requestR(cursor, success);
     }
 
     public onClickParseExcel(): void {
@@ -102,7 +150,7 @@ export class HomeComponent implements OnInit {
         this.queueTask.stopAll();
     }
 
-    // 解析民生银行
+    /** 解析民生银行 */
     private getMinShengBackXlsx(path: string): any[] {
         const workSheetsFromFile = xlsx.parse(path);
         let xList = [];
@@ -126,7 +174,6 @@ export class HomeComponent implements OnInit {
 
     public requestPost(urls: string, callback: Function): void {
         let _this = this;
-        this.zone.run(() => this.isShow = true);
 
         function handleError(error: HttpErrorResponse) {
             setTimeout(() => _this.zone.run(() => {
@@ -149,7 +196,6 @@ export class HomeComponent implements OnInit {
                         }
                     }
                 }
-                this.zone.run(() => this.isShow = false);
                 if (callback) callback();
             });
     }
