@@ -4,15 +4,15 @@
         flex-direction: row;
         align-items: center;
         padding: 14px 12px;
-        background: white;
-        color: black;
-        box-shadow: 0 1px 12px #AAAAAA;
+        //background: white;
+        //color: black;
+        //box-shadow: 0 1px 12px #AAAAAA;
     }
 
     .content-layout {
         display: flex;
         flex-direction: column;
-        width: 600px;
+        flex: 1;
         padding: 12px;
 
         .setting-layout {
@@ -25,21 +25,6 @@
                 color: #ed3330;
                 font-weight: bold;
                 margin-bottom: 12px;
-            }
-
-            .setting-item {
-                display: flex;
-                flex-direction: row;
-                margin-bottom: 6px;
-
-                .s-title {
-                    font-size: 14px;
-                    width: 150px;
-                }
-
-                .s-input {
-                    flex: 1;
-                }
             }
         }
 

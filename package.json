@@ -97,6 +97,10 @@
     "node": ">=10.13.0"
   },
   "dependencies": {
+    "@angular/animations": "9.1.9",
+    "@angular/cdk": "9.2.4",
+    "@angular/forms": "^9.0.0 || ^10.0.0-0",
+    "@angular/material": "9.2.4",
     "express": "4.17.1",
     "node-xlsx": "0.15.0",
     "puppeteer-core": "3.3.0",

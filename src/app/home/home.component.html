@@ -1,35 +1,35 @@
 <div class="container">
-    <div class="toolbar">
-        <span>民生银行抓取</span>
-    </div>
+    <mat-toolbar>
+        <span>民生解析</span>
+    </mat-toolbar>
     <div class="content-layout">
         <div class="setting-layout">
             <span class="title">基本设置</span>
-            <div class="setting-item" *ngIf="false">
-                <span class="s-title">抓取等待时间（ms）</span>
-                <input class="s-input" [(ngModel)]="evaluateInfo.webWaitTime" (keyup)="onKeyUpWebWaitTime()">
-            </div>
-            <div class="setting-item">
-                <span class="s-title">文件输出路径</span>
-                <input class="s-input" [(ngModel)]="evaluateInfo.webOutPut" (keyup)="onKeyUpWebOutPut()">
-            </div>
-            <div class="setting-item" *ngIf="false">
-                <span class="s-title">向前解析年数</span>
-                <input class="s-input" [(ngModel)]="evaluateInfo.webYears" (keyup)="onKeyUpWebYears()">
-            </div>
-            <div class="setting-item" *ngIf="true">
-                <span class="s-title">同时执行的任务数</span>
-                <input class="s-input" [(ngModel)]="evaluateInfo.taskNum" (keyup)="onKeyUpTaskNum()">
-            </div>
+            <mat-form-field class="example-form-field">
+                <mat-label>同时执行的任务数</mat-label>
+                <label>
+                    <input class="s-input" matInput [(ngModel)]="evaluateInfo.webOutPut" (keyup)="onKeyUpWebOutPut()">
+                </label>
+            </mat-form-field>
+            <mat-form-field class="example-form-field">
+                <mat-label>同时执行的任务数</mat-label>
+                <label>
+                    <input class="s-input" matInput [(ngModel)]="evaluateInfo.taskNum" (keyup)="onKeyUpTaskNum()">
+                </label>
+            </mat-form-field>
         </div>
 
         <div class="setting-layout">
             <span class="title">上传 Excel</span>
             <input id="fileField" style="margin-bottom: 6px;" #uploadImg type="file" value="解析 Excel"
                    (change)="fileChange($event)">
-            <button style="margin-bottom: 6px;" (click)="onClickGetData()">获取数据，重新解析</button>
-            <button style="margin-bottom: 6px;" (click)="onClickParseExcel()">{{isRun ? "暂停解析" : "开始解析"}}</button>
-            <button (click)="onClickTest()">测试</button>
+            <button mat-raised-button color="primary" style="margin-bottom: 6px;" (click)="onClickGetData()">
+                获取数据，重新解析
+            </button>
+            <button mat-raised-button color="primary" style="margin-bottom: 6px;" (click)="onClickParseExcel()">
+                {{isRun ? "暂停解析" : "开始解析"}}
+            </button>
+            <button mat-raised-button color="primary" (click)="onClickTest()">测试</button>
         </div>
 
         <div class="setting-layout">
@@ -54,6 +54,6 @@
     </div>
     <div *ngIf="isShow"
          style="display: flex; position: fixed; top: 0; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.8); z-index: 100; align-items: center; justify-content: center">
-        <img style="width: 42px; height: 42px;" src="../../assets/icons/loading.svg"/>
+        <mat-spinner></mat-spinner>
     </div>
 </div>
