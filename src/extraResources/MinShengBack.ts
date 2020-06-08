@@ -28,7 +28,7 @@ const RETRY_NUMBER = 60; // ms
 /** 图片宽度 */
 const RENDER_WIDTH = 1600;
 /** 页数获取时间 */
-const PAGE_ITEM = 2000;
+const PAGE_ITEM = 10000;
 
 let argvUrl = system.args[1];
 let argvOutput = system.args[2];

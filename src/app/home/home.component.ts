@@ -129,7 +129,10 @@ export class HomeComponent implements OnInit {
         this.zone.run(() => this.isShow = true);
 
         function handleError(error: HttpErrorResponse) {
-            setTimeout(() => _this.zone.run(() => _this.isShow = false), 500);
+            setTimeout(() => _this.zone.run(() => {
+                _this.isShow = false;
+                _this.xlsxList = [];
+            }), 500);
             alert("请求出现错误，请重试。");
             return throwError('Something bad happened; please try again later.');
         }
