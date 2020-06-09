@@ -87,6 +87,7 @@ export class HomeComponent implements OnInit {
             this.queueTask.setSuccessListener((index) => this.zone.run(() => this.xlsxList[index].status = "SUCCESS"));
             this.queueTask.setFailListener((index) => this.zone.run(() => this.xlsxList[index].status = "FAIL"));
             this.queueTask.setStartListener((index) => this.zone.run(() => this.xlsxList[index].status = "LOADING"));
+            this.queueTask.setJumpListener((index) => this.zone.run(() => this.xlsxList[index].status = "WARN"));
         });
 
         // let urls = "";
@@ -164,7 +165,7 @@ export class HomeComponent implements OnInit {
                 endAdvanceDate: item[i][3] || "",   // 末次垫付时间
                 productCode: item[i][4] || "",      // 理财端借款标的id
                 contractNo: item[i][5] || "",       // 合同编号
-                status: "WAIT",                     // 合同编号
+                status: "WAIT",                     // 状态
                 command: ""
             };
             xList.push(natItem);

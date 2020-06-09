@@ -12,6 +12,7 @@ export default class Task {
     private taskStartListener?: Function = null;
     private taskSuccessListener?: Function = null;
     private taskFailListener?: Function = null;
+    private taskJumpListener?: Function = null;
 
     private appExec?: any = null;
     private isKill: boolean = false;
@@ -63,6 +64,10 @@ export default class Task {
         this.taskStartListener = listener;
     }
 
+    public setTaskJumpListener(listener: Function): void {
+        this.taskJumpListener = listener;
+    }
+
     private runExec(command: any) {
         this.isKill = false;
         this.setStatus(TaskStatusEnum.RUNNING);
@@ -84,6 +89,12 @@ export default class Task {
                 this.setStatus(TaskStatusEnum.SUCCESS);
                 if (this.taskSuccessListener) {
                     this.taskSuccessListener(this.getTag());
+                }
+            } else if (stdout.indexOf("WARN") !== -1) {
+                // console.log("解析失败，任务退出");
+                this.setStatus(TaskStatusEnum.WARN);
+                if (this.taskJumpListener) {
+                    this.taskJumpListener(this.getTag());
                 }
             } else {
                 if (this.isKill) {

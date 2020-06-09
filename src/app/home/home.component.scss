@@ -64,19 +64,19 @@
     .item-layout {
         display: flex;
         flex-direction: row;
-        align-items: center;
-        justify-content: center;
         font-size: 12px;
-        padding: 1px 0;
-
-        .left-title {
-            flex: 1;
-        }
+        padding: 6px 0;
+        border-bottom: 1px #efefef solid;
 
         .right-title {
             width: 100px;
             text-align: right;
         }
+    }
+
+    .left-title {
+        font-size: 12px;
+        text-align: center;
     }
 
     .empty-layout {

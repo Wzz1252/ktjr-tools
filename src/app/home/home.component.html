@@ -34,17 +34,34 @@
 
         <div class="setting-layout">
             <span class="title">解析结果</span>
+            <div class="item-layout" *ngIf="xlsxList.length > 0">
+                <div class="left-title" style="width:130px;">身份证号码</div>
+                <div class="left-title" style="width:80px;">放款时间</div>
+                <div class="left-title" style="width:80px;">首次垫付时间</div>
+                <div class="left-title" style="width:80px;">末次垫付时间</div>
+                <div class="left-title" style="width:80px;">借款标的ID</div>
+                <div class="left-title" style="width:60px;">进件号</div>
+                <div class="left-title" style="flex: 1;">状态</div>
+            </div>
             <div *ngFor="let item of xlsxList; let i = index;">
                 <div class="item-layout">
-                    <div class="left-title">{{item.contractNo}}</div>
-                    <div class="right-title"
+                    <div class="left-title" style="width:130px;">{{item.id}}</div>
+                    <div class="left-title" style="width:80px;">{{item.loanDate}}</div>
+                    <div class="left-title" style="width:80px;">{{item.startAdvanceDate}}</div>
+                    <div class="left-title" style="width:80px;">{{item.endAdvanceDate}}</div>
+                    <div class="left-title" style="width:80px;">{{item.productCode}}</div>
+                    <div class="left-title" style="width:60px;">{{item.contractNo}}</div>
+
+                    <div class="left-title" style="flex: 1;"
                          *ngIf="item.status === 'WAIT'">{{item.status}}</div>
-                    <div class="right-title" style="color: orange;"
+                    <div class="left-title" style="flex: 1; color: deepskyblue;"
                          *ngIf="item.status === 'LOADING'">{{item.status}}</div>
-                    <div class="right-title" style="color: green;"
+                    <div class="left-title" style="flex: 1; color: green;"
                          *ngIf="item.status === 'SUCCESS'">{{item.status}}</div>
-                    <div class="right-title" style="color: red;"
+                    <div class="left-title" style="flex: 1; color: red;"
                          *ngIf="item.status === 'FAIL'">{{item.status}}</div>
+                    <div class="left-title" style="flex: 1; color: orange;"
+                         *ngIf="item.status === 'WARN'">{{item.status}}</div>
                 </div>
             </div>
             <div class="empty-layout" *ngIf="xlsxList.length <= 0">

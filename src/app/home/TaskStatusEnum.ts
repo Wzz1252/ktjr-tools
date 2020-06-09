@@ -5,6 +5,7 @@ export enum TaskStatusEnum {
     WAIT,
     RUNNING,
     SUCCESS,
-    ERROR
+    ERROR,
+    WARN
 }
 

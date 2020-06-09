@@ -14,6 +14,7 @@ export default class QueueTask {
     public successListener?: Function = null;
     public failListener?: Function = null;
     public startListener?: Function = null;
+    public jumpListener?: Function = null;
 
     public setTaskNumber(maxTaskNum: number): void {
         this.maxTaskNum = maxTaskNum;
@@ -35,6 +36,10 @@ export default class QueueTask {
         this.startListener = l;
     }
 
+    public setJumpListener(l: Function): void {
+        this.jumpListener = l;
+    }
+
     public addTask(exec: Task): void {
         this.cacheTaskQueue.push(exec);
         this.addTaskListener(exec);
@@ -43,6 +48,9 @@ export default class QueueTask {
     private addTaskListener(exec: Task): void {
         exec.setTaskStartListener((index: number) => {
             if (this.startListener) this.startListener(index);
+        });
+        exec.setTaskJumpListener((index: number) => {
+            if (this.jumpListener) this.jumpListener(index);
         });
         exec.setTaskSuccessListener((index: number) => {
             if (this.successListener) this.successListener(index);
