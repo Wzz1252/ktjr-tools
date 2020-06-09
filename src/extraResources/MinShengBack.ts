@@ -172,7 +172,7 @@ function recursiveParseTransDetailMenu(maxNum: number, mode: string, success: Fu
                 if (String(page) === "0") {
                     --maxNum;
                     ++currentRetryNumberForPage;
-                    log(`获取最大页面数失败，重试中 ${currentRetryNumberForPage}`);
+                    log(`最大页数为 0，获取最大页面数失败，重试中 ${currentRetryNumberForPage}`);
                     nativeFun();
                     return;
                 }
@@ -333,7 +333,6 @@ function setStartDateAndEndDateAndRefreshPage(maxNum: number, mode: string,
             } as any, startDate, endDate, mode, argvProductCode);
         },
         () => {
-            console.log(`>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> s: ${startDate},e: ${endDate}`);
             success(startDate, endDate);
         },
         () => fail());
@@ -349,7 +348,7 @@ function resetTotalPage(maxNum: number, mode: string, success: Function, fail: F
     let startDate = date.startDate;
     let endDate = date.endDate;
 
-    pollView('重置', 0,
+    pollView('重置页数', 0,
         () => {
             return page.evaluate(function (startDate: string, endDate: string, mode: string, argvProductCode: string) {
                 let ifm: any = document.getElementById('pageSelect');
@@ -374,26 +373,26 @@ function resetTotalPage(maxNum: number, mode: string, success: Function, fail: F
             } as any, startDate, endDate, mode, argvProductCode);
         },
         () => {
-            log("重置 点击成功，现在开始进行获取0");
-            getTotalPage23(0, RETRY_NUMBER, () => success(), () => fail());
+            log("重置页数，开始获取新的页数，确保页数为 0（表示重置成功）");
+            recursiveTotalPage(0, RETRY_NUMBER, () => success(), () => fail());
         },
         () => fail());
 }
 
-function getTotalPage23(num: number, maxNum: number, success: Function, fail: Function) {
-    if(num >= maxNum) {
+function recursiveTotalPage(num: number, maxNum: number, success: Function, fail: Function) {
+    if (num >= maxNum) {
         fail();
         return;
     }
     getTotalPage((page: number) => {
         if (String(page) === "0") {
-            log("重置成功");
+            log("重置页面成功");
             success(); // 成功
             return;
         } else {
             ++num;
-            log("重置失败，重试[" + num + "]，页数：" + page);
-            getTotalPage23(num, maxNum, success, fail); // 失败
+            log(`重置页面失败，当前的错误页数：${page}，重试次数[${num}]`);
+            recursiveTotalPage(num, maxNum, success, fail); // 失败
         }
     }, () => {
         fail();
@@ -428,40 +427,6 @@ function getTotalPage(success: (page: number) => void, fail: Function): void {
                 let pageTotals = data.html.split('共');
                 if (!pageTotals || pageTotals.length < 4) return fail();
                 success(Number(pageTotals[3].split('页')[0]) || 0);
-            },
-            () => {
-                fail();
-            });
-    }, RETRY_INTERVAL);
-}
-
-/**
- * 获得当前的最大页数
- * @param success
- * @param fail
- */
-function getTotalPage2(success: (page: number) => void, fail: Function): void {
-    log(`准备获取最大页数，定时 ${RETRY_INTERVAL} 毫秒`);
-    setTimeout(function () {
-        pollView('获取最大页数', 0,
-            () => {
-                return page.evaluate(function () {
-                    let ifm: any = document.getElementById('pageSelect');
-                    if (!ifm) return {status: '-1'};
-                    let nDocument = ifm.contentWindow.document;
-                    if (!nDocument) return {status: '-1'};
-                    let msPage = nDocument.getElementsByClassName('ms_page');
-                    if (!msPage) return {status: '-1'};
-                    let msPageItem = msPage[1];
-                    if (!msPageItem) return {status: '-1'};
-
-                    return {status: '200', data: {html: msPageItem.innerHTML || ''}};
-                } as any);
-            },
-            (data: any) => {
-                let pageTotals = data.html.split('共');
-                if (!pageTotals || pageTotals.length < 4) return fail();
-                success(Number(pageTotals[3].split('页')[0]) || -1);
             },
             () => {
                 fail();
