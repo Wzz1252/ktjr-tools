@@ -26,7 +26,7 @@ const RETRY_INTERVAL = 200; // ms
 /** 重试次数 */
 const RETRY_NUMBER = 50;
 /** 重试次数 获取页面 */
-const RETRY_NUMBER_FOR_PAGE = 20;
+const RETRY_NUMBER_FOR_PAGE = 50;
 /** 图片宽度 */
 const RENDER_WIDTH = 1600;
 /** 页数获取时间 */
@@ -189,15 +189,17 @@ function recursiveParseTransDetailMenu(maxNum: number, mode: string, success: Fu
         });
     }
 
+    totalPage = 0;
     currentPage = 1;
     if (maxNum === 0) {
         log('首次，进行菜单切换...');
         let ret = simulatedClick('transDetailMenu');
         if (ret === -1) fail();
-        nativeFun();
+        resetTotalPage(maxNum, mode, () => nativeFun(), () => fail());
     } else {
         log('已切换到指定菜单，跳过...');
-        nativeFun();
+        resetTotalPage(maxNum, mode, () => nativeFun(), () => fail());
+        // nativeFun();
     }
 }
 
@@ -243,7 +245,7 @@ function nativeRenderFun(maxNum: number, mode: string, startDate: string, endDat
         },
         (data: any, err: any) => {
             if (err.status === '-2') {
-                warn(`未加载完成: currentPage: [${currentPage}]  selectPage: [${data.selectPage}]`);
+                log(`未加载完成: currentPage: [${currentPage}]  selectPage: [${data.selectPage}]`);
             }
             fail();
         }, currentPage, totalPage);
@@ -337,6 +339,73 @@ function setStartDateAndEndDateAndRefreshPage(maxNum: number, mode: string,
         () => fail());
 }
 
+/** 对页数进行重置 随便数据股票代码，确保内容一定为空 */
+function resetTotalPage(maxNum: number, mode: string, success: Function, fail: Function) {
+    log("对页数进行重置");
+    let date: any = {startDate: '', endDate: ''};
+    if (mode === 'loan') date = getLoanDate(argvLoanDate);
+    else date = getStartAndEndDate2(maxNum, argvStartAdvanceDate, argvEndAdvanceDate);
+
+    let startDate = date.startDate;
+    let endDate = date.endDate;
+
+    pollView('重置', 0,
+        () => {
+            return page.evaluate(function (startDate: string, endDate: string, mode: string, argvProductCode: string) {
+                let ifm: any = document.getElementById('pageSelect');
+                if (!ifm) return {status: '-1', message: 'ifm null'};
+                let nDocument = ifm.contentWindow.document;
+                if (!nDocument) return {status: '-1', message: 'nDocument null'};
+                let startDateView = nDocument.getElementById('startDate');
+                if (!startDateView) return {status: '-1', message: 'startDateView null'};
+                let endDateView = nDocument.getElementById('endDate');
+                if (!endDateView) return {status: '-1', message: 'endDateView null'};
+                let btnQueryView = nDocument.getElementById('btn_query');
+                if (!btnQueryView) return {status: '-1', message: 'btnQueryView null'};
+                let prdCodeView = nDocument.getElementById('prdCode');
+                if (!prdCodeView) return {status: '-1', message: 'prdCodeView null'};
+
+                prdCodeView.value = 'XXXXXXXXX';
+                startDateView.value = startDate;
+                endDateView.value = endDate;
+
+                btnQueryView.click();
+                return {status: '200', message: 'xxx null'};
+            } as any, startDate, endDate, mode, argvProductCode);
+        },
+        () => {
+            log("重置 点击成功，现在开始进行获取0");
+            getTotalPage23(0, RETRY_NUMBER, () => success(), () => fail());
+        },
+        () => fail());
+}
+
+function getTotalPage23(num: number, maxNum: number, success: Function, fail: Function) {
+    if(num >= maxNum) {
+        fail();
+        return;
+    }
+    getTotalPage((page: number) => {
+        if (String(page) === "0") {
+            log("重置成功");
+            success(); // 成功
+            return;
+        } else {
+            ++num;
+            log("重置失败，重试[" + num + "]，页数：" + page);
+            getTotalPage23(num, maxNum, success, fail); // 失败
+        }
+    }, () => {
+        fail();
+        return;
+    });
+}
+
+/**
+ * 获得当前的最大页数
+ * @param success
+ * @param fail
+ */
 function getTotalPage(success: (page: number) => void, fail: Function): void {
     log(`准备获取最大页数，定时 ${RETRY_INTERVAL} 毫秒`);
     setTimeout(function () {
@@ -359,6 +428,40 @@ function getTotalPage(success: (page: number) => void, fail: Function): void {
                 let pageTotals = data.html.split('共');
                 if (!pageTotals || pageTotals.length < 4) return fail();
                 success(Number(pageTotals[3].split('页')[0]) || 0);
+            },
+            () => {
+                fail();
+            });
+    }, RETRY_INTERVAL);
+}
+
+/**
+ * 获得当前的最大页数
+ * @param success
+ * @param fail
+ */
+function getTotalPage2(success: (page: number) => void, fail: Function): void {
+    log(`准备获取最大页数，定时 ${RETRY_INTERVAL} 毫秒`);
+    setTimeout(function () {
+        pollView('获取最大页数', 0,
+            () => {
+                return page.evaluate(function () {
+                    let ifm: any = document.getElementById('pageSelect');
+                    if (!ifm) return {status: '-1'};
+                    let nDocument = ifm.contentWindow.document;
+                    if (!nDocument) return {status: '-1'};
+                    let msPage = nDocument.getElementsByClassName('ms_page');
+                    if (!msPage) return {status: '-1'};
+                    let msPageItem = msPage[1];
+                    if (!msPageItem) return {status: '-1'};
+
+                    return {status: '200', data: {html: msPageItem.innerHTML || ''}};
+                } as any);
+            },
+            (data: any) => {
+                let pageTotals = data.html.split('共');
+                if (!pageTotals || pageTotals.length < 4) return fail();
+                success(Number(pageTotals[3].split('页')[0]) || -1);
             },
             () => {
                 fail();
