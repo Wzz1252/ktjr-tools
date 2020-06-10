@@ -51,11 +51,14 @@ export default class QueueTask {
         });
         exec.setTaskJumpListener((index: number) => {
             if (this.jumpListener) this.jumpListener(index);
+            if (this.isStop) {
+                return;
+            }
+            this.nextTask();
         });
         exec.setTaskSuccessListener((index: number) => {
             if (this.successListener) this.successListener(index);
             if (this.isStop) {
-                console.log("1停止了...");
                 return;
             }
             this.nextTask();
@@ -63,7 +66,6 @@ export default class QueueTask {
         exec.setTaskFailListener((index: number) => {
             if (this.failListener) this.failListener(index);
             if (this.isStop) {
-                console.log("2停止了...");
                 return;
             }
             this.nextTask();

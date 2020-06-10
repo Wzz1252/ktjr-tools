@@ -1,7 +1,7 @@
 import {Component, OnInit, ChangeDetectorRef, NgZone} from '@angular/core';
 import {Router} from '@angular/router';
 import EnvPathManager from "../core/env.path.manager";
-import {HttpClient, HttpErrorResponse} from "@angular/common/http";
+import {HttpClient, HttpErrorResponse, HttpHeaders} from "@angular/common/http";
 import xlsx from 'node-xlsx';
 import QueueTask from "./QueueTask";
 import Task from "./Task";
@@ -63,14 +63,6 @@ export class HomeComponent implements OnInit {
         }
         this.xlsxList = this.getMinShengBackXlsx(this.filePath);
 
-        // let currentCursor = this.cursor;
-        // let nextCursor = Math.min(this.cursor + 2, this.xlsxList.length);
-        // let urls = "";
-        // for (let i = currentCursor; i < nextCursor; i++) {
-        //     urls += this.xlsxList[i].id + ",";
-        // }
-
-        console.log("this.xlsxList: ", this.xlsxList);
         this.zone.run(() => this.isShow = true);
         this.requestR(0, () => {
             this.zone.run(() => this.isShow = false);
@@ -89,26 +81,6 @@ export class HomeComponent implements OnInit {
             this.queueTask.setStartListener((index) => this.zone.run(() => this.xlsxList[index].status = "LOADING"));
             this.queueTask.setJumpListener((index) => this.zone.run(() => this.xlsxList[index].status = "WARN"));
         });
-
-        // let urls = "";
-        // for (let i = 0; i < this.xlsxList.length; i++) {
-        //     urls += this.xlsxList[i].id + ",";
-        // }
-
-        // this.requestPost(urls, () => {
-        //     this.queueTask = new QueueTask();
-        //     this.queueTask.setTaskNumber(Number(this.evaluateInfo.taskNum));
-        //     for (let i = 0; i < this.xlsxList.length; i++) {
-        //         this.queueTask.addTask(new Task(this.xlsxList[i].command, String(this.xlsxList[i].index)));
-        //     }
-        //     this.queueTask.setCompleteListener(() => {
-        //         this.zone.run(() => this.isRun = false);
-        //         alert("解析完成！");
-        //     });
-        //     this.queueTask.setSuccessListener((index) => this.zone.run(() => this.xlsxList[index].status = "SUCCESS"));
-        //     this.queueTask.setFailListener((index) => this.zone.run(() => this.xlsxList[index].status = "FAIL"));
-        //     this.queueTask.setStartListener((index) => this.zone.run(() => this.xlsxList[index].status = "LOADING"));
-        // });
     }
 
     private requestR(currentNum: number, success: Function): void {
@@ -118,9 +90,12 @@ export class HomeComponent implements OnInit {
             success();
             return;
         }
-        let urls = "";
+        let urls = [];
         for (let i = cursor; i < nextCursor; i++) {
-            urls += this.xlsxList[i].id + ",";
+            urls.push({
+                fundAcc: this.xlsxList[i].assetId,
+                idNo: this.xlsxList[i].id,
+            });
         }
         console.log("requestR: ", urls, "  cursor: ", cursor, "  nextCursor: ", nextCursor);
         this.requestPost(urls, () => {
@@ -165,6 +140,7 @@ export class HomeComponent implements OnInit {
                 endAdvanceDate: item[i][3] || "",   // 末次垫付时间
                 productCode: item[i][4] || "",      // 理财端借款标的id
                 contractNo: item[i][5] || "",       // 合同编号
+                assetId: item[i][6] || "",          // 资产ID
                 status: "WAIT",                     // 状态
                 command: ""
             };
@@ -173,7 +149,7 @@ export class HomeComponent implements OnInit {
         return xList;
     }
 
-    public requestPost(urls: string, callback: Function): void {
+    public requestPost(urls: Array<any>, callback: Function): void {
         let _this = this;
 
         function handleError(error: HttpErrorResponse) {
@@ -185,7 +161,12 @@ export class HomeComponent implements OnInit {
             return throwError('Something bad happened; please try again later.');
         }
 
-        this.http.post("https://data-sharing.renrendai.com/cmbc/accountUrlList", null, {params: {idNo: urls}})
+        // {account: urls}
+        this.http.post("https://data-sharing.renrendai.com/cmbc/accountUrlList",
+            `account=${JSON.stringify(urls)}`,
+            {
+                headers: new HttpHeaders({'Content-Type': 'application/x-www-form-urlencoded'}),
+            })
             .pipe(catchError(handleError))
             .subscribe((response: any) => {
                 console.log(response.data);

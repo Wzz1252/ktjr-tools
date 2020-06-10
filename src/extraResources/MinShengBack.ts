@@ -24,9 +24,9 @@ const QUERY_MAX_DAYS = 183;
 /** 重试间隔 */
 const RETRY_INTERVAL = 200; // ms
 /** 重试次数 */
-const RETRY_NUMBER = 50;
+const RETRY_NUMBER = 25;
 /** 重试次数 获取页面 */
-const RETRY_NUMBER_FOR_PAGE = 50;
+const RETRY_NUMBER_FOR_PAGE = RETRY_NUMBER;
 /** 图片宽度 */
 const RENDER_WIDTH = 1600;
 /** 页数获取时间 */
