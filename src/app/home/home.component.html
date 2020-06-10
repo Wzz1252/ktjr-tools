@@ -6,20 +6,32 @@
         <div class="setting-layout">
             <span class="title">基本设置</span>
             <div class="setting-item" *ngIf="false">
-                <span class="s-title">抓取等待时间（ms）</span>
-                <input class="s-input" [(ngModel)]="evaluateInfo.webWaitTime" (keyup)="onKeyUpWebWaitTime()">
+                <mat-form-field class="example-full-width">
+                    <input matInput class="s-input" placeholder="抓取等待时间（ms）" [(ngModel)]="evaluateInfo.webWaitTime" (keyup)="onKeyUpWebWaitTime()">
+                </mat-form-field>
+                <!--<span class="s-title">抓取等待时间（ms）</span>-->
+                <!--<input class="s-input" [(ngModel)]="evaluateInfo.webWaitTime" (keyup)="onKeyUpWebWaitTime()">-->
             </div>
             <div class="setting-item">
-                <span class="s-title">文件输出路径</span>
-                <input class="s-input" [(ngModel)]="evaluateInfo.webOutPut" (keyup)="onKeyUpWebOutPut()">
+                <mat-form-field class="example-full-width">
+                    <input matInput class="s-input" placeholder="文件输出路径" [(ngModel)]="evaluateInfo.webOutPut" (keyup)="onKeyUpWebOutPut()">
+                </mat-form-field>
+                <!--<span class="s-title">文件输出路径</span>-->
+                <!--<input class="s-input" [(ngModel)]="evaluateInfo.webOutPut" (keyup)="onKeyUpWebOutPut()">-->
             </div>
             <div class="setting-item" *ngIf="false">
-                <span class="s-title">向前解析年数</span>
-                <input class="s-input" [(ngModel)]="evaluateInfo.webYears" (keyup)="onKeyUpWebYears()">
+                <mat-form-field class="example-full-width">
+                    <input matInput class="s-input" placeholder="向前解析年数" [(ngModel)]="evaluateInfo.webYears" (keyup)="onKeyUpWebYears()">
+                </mat-form-field>
+                <!--<span class="s-title">向前解析年数</span>-->
+                <!--<input class="s-input" [(ngModel)]="evaluateInfo.webYears" (keyup)="onKeyUpWebYears()">-->
             </div>
             <div class="setting-item" *ngIf="true">
-                <span class="s-title">同时执行的任务数</span>
-                <input class="s-input" [(ngModel)]="evaluateInfo.taskNum" (keyup)="onKeyUpTaskNum()">
+                <mat-form-field class="example-full-width">
+                    <input matInput class="s-input" placeholder="同时执行的任务数" [(ngModel)]="evaluateInfo.taskNum" (keyup)="onKeyUpTaskNum()">
+                </mat-form-field>
+                <!--<span class="s-title">同时执行的任务数</span>-->
+                <!--<input class="s-input" [(ngModel)]="evaluateInfo.taskNum" (keyup)="onKeyUpTaskNum()">-->
             </div>
         </div>
 
@@ -27,12 +39,12 @@
             <span class="title">上传 Excel</span>
             <input id="fileField" style="margin-bottom: 6px;" #uploadImg type="file" value="解析 Excel"
                    (change)="fileChange($event)">
-            <button style="margin-bottom: 6px;" (click)="onClickGetData()">获取数据，重新解析</button>
-            <button style="margin-bottom: 6px;" (click)="onClickParseExcel()">{{isRun ? "暂停解析" : "开始解析"}}</button>
+            <button mat-stroked-button color="primary" style="margin-bottom: 6px;" (click)="onClickGetData()">获取数据，重新解析</button>
+            <button mat-stroked-button color="primary" style="margin-bottom: 6px;" (click)="onClickParseExcel()">{{isRun ? "暂停解析" : "开始解析"}}</button>
             <!--<button (click)="onClickKill()">停止解析</button>-->
         </div>
 
-        <div class="setting-layout">
+        <div class="setting-layout" style="margin-top: 12px;">
             <span class="title">解析结果</span>
             <div class="item-layout" *ngIf="xlsxList.length > 0">
                 <div class="left-title" style="width:130px;">身份证号码</div>
@@ -71,6 +83,6 @@
     </div>
     <div *ngIf="isShow"
          style="display: flex; position: fixed; top: 0; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.8); z-index: 100; align-items: center; justify-content: center">
-        <img style="width: 42px; height: 42px;" src="../../assets/icons/loading.svg"/>
+        <mat-spinner></mat-spinner>
     </div>
 </div>

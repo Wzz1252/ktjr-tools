@@ -1,6 +1,6 @@
 {
   "appId": "org.mspring.hexo.client",
-  "productName": "angular-electron",
+  "productName": "民生截图",
   "directories": {
     "output": "release/"
   },

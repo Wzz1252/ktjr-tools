@@ -18,11 +18,10 @@
         .setting-layout {
             display: flex;
             flex-direction: column;
-            margin-bottom: 12px;
 
             .title {
                 font-size: 14px;
-                color: #ed3330;
+                color: #673ab7;
                 font-weight: bold;
                 margin-bottom: 12px;
             }
@@ -82,5 +81,9 @@
     .empty-layout {
         flex: 1;
         font-size: 12px;
+    }
+
+    .mat-form-field {
+        flex: 1;
     }
 }
