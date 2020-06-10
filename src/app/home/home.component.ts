@@ -152,12 +152,12 @@ export class HomeComponent implements OnInit {
     public requestPost(urls: Array<any>, callback: Function): void {
         let _this = this;
 
-        function handleError(error: HttpErrorResponse) {
+        function handleError(message: string) {
             setTimeout(() => _this.zone.run(() => {
                 _this.isShow = false;
                 _this.xlsxList = [];
-            }), 500);
-            alert("请求出现错误，请重试。");
+            }), 200);
+            alert(message ? message : "请求出现错误，请重试。");
             return throwError('Something bad happened; please try again later.');
         }
 
@@ -170,6 +170,11 @@ export class HomeComponent implements OnInit {
             .pipe(catchError(handleError))
             .subscribe((response: any) => {
                 console.log(response.data);
+                if (response.data.length <= 0) {
+                    handleError("未查询到数据，请在 Network 标签中查看详情内容");
+                    return;
+                }
+
                 for (let i = 0; i < response.data.length; i++) {
                     for (let j = 0; j < this.xlsxList.length; j++) {
                         if (response.data[i].idNo === this.xlsxList[j].id) {
