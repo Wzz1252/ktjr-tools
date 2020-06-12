@@ -598,7 +598,7 @@ function jumpProgram() {
 
 
 function getOutputPath(fileName: string): string {
-    return `${argvOutput}${argvContractNo}/${fileName}`;
+    return `${argvOutput}${argvContractNo}-银行流水/${fileName}`;
 }
 
 /** ------------------------------------ Logger ------------------------------------ */
