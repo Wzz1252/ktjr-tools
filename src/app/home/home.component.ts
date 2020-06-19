@@ -1,12 +1,8 @@
 import {Component, OnInit, ChangeDetectorRef, NgZone} from '@angular/core';
 import {Router} from '@angular/router';
-import EnvPathManager from "../core/env.path.manager";
-import {HttpClient, HttpErrorResponse, HttpHeaders} from "@angular/common/http";
 import xlsx from 'node-xlsx';
 import QueueTask from "./QueueTask";
 import Task from "./Task";
-import {throwError} from "rxjs";
-import {catchError} from "rxjs/operators";
 
 @Component({
     selector: 'app-home',
@@ -27,13 +23,14 @@ export class HomeComponent implements OnInit {
     };
 
     public isShow: boolean = false;
+    public errorCode: string = "1";
     public xlsxList: any[] = [];
     public filePath = "";
     public queueTask: QueueTask = null;
     public isRun: boolean = false;
     public cursor: number = 0;
 
-    constructor(public router: Router, public ref: ChangeDetectorRef, private zone: NgZone, public http: HttpClient) {
+    constructor(public router: Router, public ref: ChangeDetectorRef, private zone: NgZone) {
     }
 
     public onKeyUpWebWaitTime() {
@@ -63,49 +60,29 @@ export class HomeComponent implements OnInit {
         }
         this.xlsxList = this.getMinShengBackXlsx(this.filePath);
 
-        this.zone.run(() => this.isShow = true);
-        this.requestR(0, () => {
-            this.zone.run(() => this.isShow = false);
-            console.log("完成: ", this.xlsxList);
-            this.queueTask = new QueueTask();
-            this.queueTask.setTaskNumber(Number(this.evaluateInfo.taskNum));
-            for (let i = 0; i < this.xlsxList.length; i++) {
-                this.queueTask.addTask(new Task(this.xlsxList[i].command, String(this.xlsxList[i].index)));
-            }
-            this.queueTask.setCompleteListener(() => {
-                this.zone.run(() => this.isRun = false);
-                alert("解析完成！");
-            });
-            this.queueTask.setSuccessListener((index) => this.zone.run(() => this.xlsxList[index].status = "SUCCESS"));
-            this.queueTask.setFailListener((index) => this.zone.run(() => this.xlsxList[index].status = "FAIL"));
-            this.queueTask.setStartListener((index) => this.zone.run(() => this.xlsxList[index].status = "LOADING"));
-            this.queueTask.setJumpListener((index) => this.zone.run(() => this.xlsxList[index].status = "WARN"));
-        });
-    }
-
-    private requestR(currentNum: number, success: Function): void {
-        let cursor = currentNum;
-        let nextCursor = Math.min(this.xlsxList.length, currentNum + 1);
-        if (cursor >= nextCursor) {
-            success();
-            return;
+        console.log("完成: ", this.xlsxList);
+        this.queueTask = new QueueTask();
+        this.queueTask.setTaskNumber(Number(this.evaluateInfo.taskNum));
+        for (let i = 0; i < this.xlsxList.length; i++) {
+            this.queueTask.addTask(
+                new Task(this.xlsxList[i].command,
+                    String(this.xlsxList[i].index),
+                    this.xlsxList[i],
+                    this.evaluateInfo.webOutPut,
+                    this.evaluateInfo.webWaitTime
+                ));
         }
-        let urls = [];
-        for (let i = cursor; i < nextCursor; i++) {
-            urls.push({
-                fundAcc: this.xlsxList[i].assetId,
-                idNo: this.xlsxList[i].id,
-            });
-        }
-        console.log("requestR: ", urls, "  cursor: ", cursor, "  nextCursor: ", nextCursor);
-        this.requestPost(urls, () => {
-            setTimeout(() => {
-                cursor = nextCursor;
-                this.requestR(cursor, success);
-            }, 200);
+        this.queueTask.setCompleteListener(() => {
+            this.zone.run(() => this.isRun = false);
+            alert("解析完成！");
         });
-        // cursor = nextCursor;
-        // this.requestR(cursor, success);
+        this.queueTask.setSuccessListener((index) => this.zone.run(() => this.xlsxList[index].status = "SUCCESS"));
+        this.queueTask.setFailListener((index, errorCode) => this.zone.run(() => {
+            this.xlsxList[index].status = "FAIL";
+            this.xlsxList[index].errorCode = errorCode;
+        }));
+        this.queueTask.setStartListener((index) => this.zone.run(() => this.xlsxList[index].status = "LOADING"));
+        this.queueTask.setJumpListener((index) => this.zone.run(() => this.xlsxList[index].status = "WARN"));
     }
 
     public onClickParseExcel(): void {
@@ -147,57 +124,6 @@ export class HomeComponent implements OnInit {
             xList.push(natItem);
         }
         return xList;
-    }
-
-    public requestPost(urls: Array<any>, callback: Function): void {
-        let _this = this;
-
-        function handleError(message: string) {
-            setTimeout(() => _this.zone.run(() => {
-                _this.isShow = false;
-                _this.xlsxList = [];
-            }), 200);
-            alert(message ? message : "请求出现错误，请重试。");
-            return throwError('Something bad happened; please try again later.');
-        }
-
-        // {account: urls}
-        this.http.post("https://data-sharing.renrendai.com/cmbc/accountUrlList",
-            `account=${JSON.stringify(urls)}`,
-            {
-                headers: new HttpHeaders({'Content-Type': 'application/x-www-form-urlencoded'}),
-            })
-            .pipe(catchError(handleError))
-            .subscribe((response: any) => {
-                console.log(response.data);
-                if (response.data.length <= 0) {
-                    handleError("未查询到数据，请在 Network 标签中查看详情内容");
-                    return;
-                }
-
-                for (let i = 0; i < response.data.length; i++) {
-                    for (let j = 0; j < this.xlsxList.length; j++) {
-                        if (response.data[i].idNo === this.xlsxList[j].id) {
-                            this.xlsxList[j].url = response.data[i].url;
-                            this.xlsxList[j].command = this.getReturnCommand(this.xlsxList[j]);
-                        }
-                    }
-                }
-                if (callback) callback();
-            });
-    }
-
-    public getReturnCommand(data: any): string {
-        return EnvPathManager.getPhantomjsPath() + " " +
-            EnvPathManager.getPjs() + " " +
-            data.url + " " +
-            this.evaluateInfo.webOutPut + " " +
-            this.evaluateInfo.webWaitTime + " " +
-            data.loanDate + " " +           // LoanDate
-            data.startAdvanceDate + " " +   // StartAdvanceDate
-            data.endAdvanceDate + " " +     // EndAdvanceDate
-            data.productCode + " " +        // ProductCode
-            data.contractNo + " ";          // ContractNo
     }
 
     public ngOnInit(): void {

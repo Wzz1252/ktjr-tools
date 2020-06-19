@@ -63,8 +63,8 @@ export default class QueueTask {
             }
             this.nextTask();
         });
-        exec.setTaskFailListener((index: number) => {
-            if (this.failListener) this.failListener(index);
+        exec.setTaskFailListener((index: number, errorCode: string) => {
+            if (this.failListener) this.failListener(index, errorCode);
             if (this.isStop) {
                 return;
             }

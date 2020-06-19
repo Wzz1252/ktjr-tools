@@ -7,31 +7,27 @@
             <span class="title">基本设置</span>
             <div class="setting-item" *ngIf="false">
                 <mat-form-field class="example-full-width">
-                    <input matInput class="s-input" placeholder="抓取等待时间（ms）" [(ngModel)]="evaluateInfo.webWaitTime" (keyup)="onKeyUpWebWaitTime()">
+                    <input matInput class="s-input" placeholder="抓取等待时间（ms）" [(ngModel)]="evaluateInfo.webWaitTime"
+                           (keyup)="onKeyUpWebWaitTime()">
                 </mat-form-field>
-                <!--<span class="s-title">抓取等待时间（ms）</span>-->
-                <!--<input class="s-input" [(ngModel)]="evaluateInfo.webWaitTime" (keyup)="onKeyUpWebWaitTime()">-->
             </div>
             <div class="setting-item">
                 <mat-form-field class="example-full-width">
-                    <input matInput class="s-input" placeholder="文件输出路径" [(ngModel)]="evaluateInfo.webOutPut" (keyup)="onKeyUpWebOutPut()">
+                    <input matInput class="s-input" placeholder="文件输出路径" [(ngModel)]="evaluateInfo.webOutPut"
+                           (keyup)="onKeyUpWebOutPut()">
                 </mat-form-field>
-                <!--<span class="s-title">文件输出路径</span>-->
-                <!--<input class="s-input" [(ngModel)]="evaluateInfo.webOutPut" (keyup)="onKeyUpWebOutPut()">-->
             </div>
             <div class="setting-item" *ngIf="false">
                 <mat-form-field class="example-full-width">
-                    <input matInput class="s-input" placeholder="向前解析年数" [(ngModel)]="evaluateInfo.webYears" (keyup)="onKeyUpWebYears()">
+                    <input matInput class="s-input" placeholder="向前解析年数" [(ngModel)]="evaluateInfo.webYears"
+                           (keyup)="onKeyUpWebYears()">
                 </mat-form-field>
-                <!--<span class="s-title">向前解析年数</span>-->
-                <!--<input class="s-input" [(ngModel)]="evaluateInfo.webYears" (keyup)="onKeyUpWebYears()">-->
             </div>
             <div class="setting-item" *ngIf="true">
                 <mat-form-field class="example-full-width">
-                    <input matInput class="s-input" placeholder="同时执行的任务数" [(ngModel)]="evaluateInfo.taskNum" (keyup)="onKeyUpTaskNum()">
+                    <input matInput class="s-input" placeholder="同时执行的任务数" [(ngModel)]="evaluateInfo.taskNum"
+                           (keyup)="onKeyUpTaskNum()">
                 </mat-form-field>
-                <!--<span class="s-title">同时执行的任务数</span>-->
-                <!--<input class="s-input" [(ngModel)]="evaluateInfo.taskNum" (keyup)="onKeyUpTaskNum()">-->
             </div>
         </div>
 
@@ -39,8 +35,11 @@
             <span class="title">上传 Excel</span>
             <input id="fileField" style="margin-bottom: 6px;" #uploadImg type="file" value="解析 Excel"
                    (change)="fileChange($event)">
-            <button mat-stroked-button color="primary" style="margin-bottom: 6px;" (click)="onClickGetData()">获取数据，重新解析</button>
-            <button mat-stroked-button color="primary" style="margin-bottom: 6px;" (click)="onClickParseExcel()">{{isRun ? "暂停解析" : "开始解析"}}</button>
+            <button mat-stroked-button color="primary" style="margin-bottom: 6px;" (click)="onClickGetData()">
+                获取数据，重新解析
+            </button>
+            <button mat-stroked-button color="primary" style="margin-bottom: 6px;"
+                    (click)="onClickParseExcel()">{{isRun ? "暂停解析" : "开始解析"}}</button>
             <!--<button (click)="onClickKill()">停止解析</button>-->
         </div>
 
@@ -71,7 +70,7 @@
                     <div class="left-title" style="flex: 1; color: green;"
                          *ngIf="item.status === 'SUCCESS'">{{item.status}}</div>
                     <div class="left-title" style="flex: 1; color: red;"
-                         *ngIf="item.status === 'FAIL'">{{item.status}}</div>
+                         *ngIf="item.status === 'FAIL'">{{item.status}}{{item.errorCode ? ":" : ""}}{{item.errorCode}}</div>
                     <div class="left-title" style="flex: 1; color: orange;"
                          *ngIf="item.status === 'WARN'">{{item.status}}</div>
                 </div>
