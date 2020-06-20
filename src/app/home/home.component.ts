@@ -3,6 +3,10 @@ import {Router} from '@angular/router';
 import xlsx from 'node-xlsx';
 import QueueTask from "./QueueTask";
 import Task from "./Task";
+import jsPDF from 'jspdf';
+import PDFManager from "./PDFManager";
+
+const fs = require("fs");
 
 @Component({
     selector: 'app-home',
@@ -99,8 +103,66 @@ export class HomeComponent implements OnInit {
         }
     }
 
-    public onClickKill(): void {
-        this.queueTask.stopAll();
+    public onClickPdf(): void {
+        // let pdfManager = new PDFManager();
+        // let files = [];
+        // pdfManager.readFileList("/Users/torment/output3/1466229-银行流水/", files);
+        // console.log("结果：", files);
+        //
+        // var doc = new jsPDF();
+        // // 获得本地图片
+        // let nativeImage = "";
+        // fs.readFile('/Users/torment/output3/1466229-银行流水/1466229-1账号.png',
+        //     (err, data) => {
+        //         nativeImage = data;
+        //
+        //         for (let i = 1; i < 100; i++) {
+        //             doc.addImage(data, 'PNG', 0, 20, 200, 200);
+        //             doc.addPage();
+        //         }
+        //         console.log("获得本地图片：", err, data);
+        //
+        //         let datauri = doc.output("arraybuffer");
+        //         // @ts-ignore
+        //         fs.writeFile('/Users/torment/output3/pdf/xxx.pdf', new Buffer.from(datauri),
+        //             function (error) {
+        //                 console.log("写入结果: ", error);
+        //             });
+        //     });
+
+        let pdf = new jsPDF('p', 'pt', 'a4', true);
+        this.testAddFile("/Users/torment/output3/", pdf);
+    }
+
+    private async testAddFile(path: string, pdf: jsPDF) {
+        let pdfManager = new PDFManager();
+        let files = [];
+        pdfManager.readFileList(path, files);
+        console.log("结果：", files);
+
+        for (let i = 0; i < files.length; i++) {
+            let content = await this.readFile(files[i].path + files[i].filename);
+            pdf.addPage([files[i].width, files[i].height]);
+            pdf.addImage(content, "PNG", 0, 0, files[i].width, files[i].height, "", "MEDIUM");
+            console.log(`index[${i}]: `, content);
+        }
+        console.log("执行完成...");
+        let dataUri = pdf.output("arraybuffer");
+        console.log("获得数据...");
+        // @ts-ignore
+        fs.writeFile('/Users/torment/xxx.pdf', new Buffer.from(dataUri),
+            function (error) {
+                console.log("写入结果: ", error);
+            });
+    }
+
+    private readFile(pathName: string) {
+        return new Promise((resolve, reject) => {
+            fs.readFile(pathName,
+                (error, data) => {
+                    resolve(data);
+                });
+        });
     }
 
     /** 解析民生银行 */
