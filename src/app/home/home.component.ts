@@ -6,6 +6,10 @@ import MinShengEntity from "../entity/MinShengEntity";
 import PDFManager from "./PDFManager";
 import xlsx from 'node-xlsx';
 import jsPDF from 'jspdf';
+import NewQueueTask from "../core/queue/NewQueueTask";
+import NewTask from "../core/queue/NewTask";
+import YouXinImplTask from "../core/queue/YouXinImplTask";
+import MinShengController from "../core/queue/MinShengController";
 
 const fs = require("fs");
 
@@ -66,17 +70,20 @@ export class HomeComponent implements OnInit {
     }
 
     public onClickParseExcel(): void {
-        if (this.minShengList.length <= 0) {
-            alert("请先上传 Excel，然后点击获取数据");
-            return;
-        }
-        if (this.isRun) {
-            this.queueTask.stopAll();
-            this.isRun = false;
-        } else {
-            this.queueTask.run();
-            this.isRun = true;
-        }
+        this.minShengController.start();
+
+        // ------------------
+        // if (this.minShengList.length <= 0) {
+        //     alert("请先上传 Excel，然后点击获取数据");
+        //     return;
+        // }
+        // if (this.isRun) {
+        //     this.queueTask.stopAll();
+        //     this.isRun = false;
+        // } else {
+        //     this.queueTask.run();
+        //     this.isRun = true;
+        // }
     }
 
     public onClickPdf(): void {
@@ -141,30 +148,46 @@ export class HomeComponent implements OnInit {
         });
     }
 
+    private minShengController: MinShengController = null;
+
     private createQueueTask(): void {
-        this.minShengList = this.getMinShengBackXlsx(this.filePath);
-        console.log("解析 Excel 完成：", this.minShengList);
+        this.minShengController = new MinShengController();
+        this.minShengController.setExcelPath(this.filePath);
+        this.minShengController.setOutput(this.info.webOutPut);
+        this.minShengController.setWaitTime(this.info.webWaitTime);
+        this.minShengController.setWaitTime(this.info.taskNum);
 
-        this.queueTask = new QueueTask();
-        this.queueTask.setTaskNumber(Number(this.info.taskNum));
-
-        // 添加任务
-        for (let i = 0; i < this.minShengList.length; i++) {
-            this.queueTask.addTask(new MinShengTask(String(this.minShengList[i].index), this.minShengList[i]));
-        }
-
-        // 设置各种回调
-        this.queueTask.setCompleteListener(() => {
-            this.zone.run(() => this.isRun = false);
-            alert("解析完成！");
+        this.minShengController.setYouxinSuccessListener((data: MinShengEntity) => {
         });
-        this.queueTask.setSuccessListener((index) => this.zone.run(() => this.minShengList[index].status = "SUCCESS"));
-        this.queueTask.setFailListener((index, errorCode) => this.zone.run(() => {
-            this.minShengList[index].status = "FAIL";
-            this.minShengList[index].errorCode = errorCode;
-        }));
-        this.queueTask.setStartListener((index) => this.zone.run(() => this.minShengList[index].status = "LOADING"));
-        this.queueTask.setJumpListener((index) => this.zone.run(() => this.minShengList[index].status = "WARN"));
+        this.minShengController.setYouxinFailListener((data: MinShengEntity) => {
+        });
+
+        this.minShengList = this.minShengController.getMinShengBackXlsx();
+
+        // --------------------
+        // this.minShengList = this.getMinShengBackXlsx(this.filePath);
+        // console.log("解析 Excel 完成：", this.minShengList);
+        //
+        // this.queueTask = new QueueTask();
+        // this.queueTask.setTaskNumber(Number(this.info.taskNum));
+        //
+        // // 添加任务
+        // for (let i = 0; i < this.minShengList.length; i++) {
+        //     this.queueTask.addTask(new MinShengTask(String(this.minShengList[i].index), this.minShengList[i]));
+        // }
+        //
+        // // 设置各种回调
+        // this.queueTask.setCompleteListener(() => {
+        //     this.zone.run(() => this.isRun = false);
+        //     alert("解析完成！");
+        // });
+        // this.queueTask.setSuccessListener((index) => this.zone.run(() => this.minShengList[index].status = "SUCCESS"));
+        // this.queueTask.setFailListener((index, errorCode) => this.zone.run(() => {
+        //     this.minShengList[index].status = "FAIL";
+        //     this.minShengList[index].errorCode = errorCode;
+        // }));
+        // this.queueTask.setStartListener((index) => this.zone.run(() => this.minShengList[index].status = "LOADING"));
+        // this.queueTask.setJumpListener((index) => this.zone.run(() => this.minShengList[index].status = "WARN"));
     }
 
     /** 解析民生银行 */
@@ -192,4 +215,21 @@ export class HomeComponent implements OnInit {
 
     public ngOnInit(): void {
     }
+
+    // private queue: NewQueueTask<NewTask> = new NewQueueTask<NewTask>();
+    //
+    // public onClickTestAddTask(): void {
+    //     let entity = new MinShengEntity();
+    //     entity.assetId = "9595104284817007";
+    //     entity.id = "513002199109238757";
+    //     this.queue.addTask2(new YouXinImplTask(entity));
+    // }
+    //
+    // public onClickTestRunTask(): void {
+    //     this.queue.startTask();
+    // }
+    //
+    // public onClickTestStopTask(): void {
+    //     this.queue.stopTask();
+    // }
 }

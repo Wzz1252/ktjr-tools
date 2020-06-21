@@ -1,4 +1,6 @@
-import TaskEntity from "./TaskEntity";
+import TaskEntity from "../core/queue/TaskEntity";
+import YouXinImplTask from "../core/queue/YouXinImplTask";
+import {MinShengStatusEnum} from "../core/queue/MinShengStatusEnum";
 
 export default class MinShengEntity extends TaskEntity {
 
@@ -32,4 +34,7 @@ export default class MinShengEntity extends TaskEntity {
     public errorCode: string = "";
     /** 组装的命令行 */
     public command: string = "";
+
+    public youxinTask: YouXinImplTask = null;
+    public youxinStatus: MinShengStatusEnum = MinShengStatusEnum.WAIT;
 }
