@@ -1,18 +1,11 @@
-import MinShengTask from "../../home/MinShengTask";
-import {TaskStatusEnum} from "../../home/TaskStatusEnum";
 import NewTask from "./NewTask";
 import {NewTaskStatusEnum} from "./NewTaskStatusEnum";
 import UUIDUtils from "./UUIDUtils";
-import Net = Electron.Net;
-import {TaskFailListener, TaskSuccessListener} from "./TaskSuccessListener";
+import {TaskFailListener, TaskStartListener, TaskSuccessListener} from "./TaskSuccessListener";
+import Logger from "./Logger";
 
-/**
- * 1. 开启任务
- * 2. 暂停任务
- * 3. 终止任务
- * 4. 重置任务
- * 5. 添加任务（如果任务为null，就进行等待，等添加了新的任务，直接开始执行）
- */
+const TAG = "NewQueueTask";
+
 export default class NewQueueTask<DATA, TASK extends NewTask<DATA>> {
     // 缓存队列（存放未完成的任务）
     private cacheQueue: Map<string, TASK> = new Map<string, TASK>();
@@ -26,8 +19,13 @@ export default class NewQueueTask<DATA, TASK extends NewTask<DATA>> {
     private maxThreadNumber: number = 2;
     private isRunTask: boolean = false;
 
+    private startListener: TaskStartListener<DATA>;
     private successListener: TaskSuccessListener<DATA>;
     private failListener: TaskFailListener<DATA>;
+
+    public setStartListener(listener: TaskStartListener<DATA>): void {
+        this.startListener = listener;
+    }
 
     public setSuccessListener(listener: TaskSuccessListener<DATA>): void {
         this.successListener = listener;
@@ -75,14 +73,19 @@ export default class NewQueueTask<DATA, TASK extends NewTask<DATA>> {
             return;
         }
 
-        console.warn("TAG",
+        if (idleThreadCount === 0) {
+            console.warn("暂无空闲线程，等待中...");
+            return;
+        }
+
+        Logger.log(TAG,
             "继续执行任务，闲置线程：", idleThreadCount,
             "等待的任务数：", waitTaskCount,
             "剩余的任务数：", cacheTaskCount,
         );
 
-        if ((waitTaskCount + cacheTaskCount) == 0) {
-            console.warn("执行完成，任务结束");
+        if ((waitTaskCount + cacheTaskCount) == 0 && this.getProgressThreadCount() === 0) {
+            Logger.log(TAG, "暂无新任务，暂停");
             return;
         }
 
@@ -115,8 +118,14 @@ export default class NewQueueTask<DATA, TASK extends NewTask<DATA>> {
      */
     private createProgressTask(key: string, task: TASK): Promise<TASK> {
         return new Promise((resolve, reject) => {
-            console.log("开启一个任务...", key);
-            task.startTask();
+            Logger.log(TAG, "开启一个任务: ", key);
+            this.removeTaskForCacheOrWait(key);
+
+            task.setStartListener((data: DATA) => {
+                if (this.startListener) {
+                    this.startListener(data);
+                }
+            });
             task.setSuccessListener((data: DATA) => {
                 if (this.successListener) {
                     this.successListener(data);
@@ -126,7 +135,7 @@ export default class NewQueueTask<DATA, TASK extends NewTask<DATA>> {
                 this.removeTaskForCacheOrWait(key);
                 this.removeProgressTaskByIndex(key);
 
-                console.log("任务执行成功...", key);
+                Logger.log(TAG, "任务执行成功...", key);
                 this.logger();
                 this.runNextTask();
             })
@@ -139,10 +148,12 @@ export default class NewQueueTask<DATA, TASK extends NewTask<DATA>> {
                 this.removeTaskForCacheOrWait(key);
                 this.removeProgressTaskByIndex(key);
 
-                console.log("任务执行失败...", key);
+                Logger.log(TAG, "任务执行失败...", key);
                 this.logger();
                 this.runNextTask();
             })
+
+            task.startTask();
             resolve();
         })
     }
@@ -199,7 +210,7 @@ export default class NewQueueTask<DATA, TASK extends NewTask<DATA>> {
     }
 
     public addTask2(task: TASK): void {
-        console.warn("添加了一个新任务");
+        Logger.log("MinShengController", "添加新任务");
         this.cacheQueue.set(UUIDUtils.buildUUID(32, 32), task);
 
         if (this.isRunTask) {
@@ -222,6 +233,10 @@ export default class NewQueueTask<DATA, TASK extends NewTask<DATA>> {
         return this.waitQueue.size || 0;
     }
 
+    public getChacheQueue(): Map<string, TASK> {
+        return this.cacheQueue;
+    }
+
     private getCacheCount(): number {
         let count = 0;
         // @ts-ignore
@@ -235,7 +250,7 @@ export default class NewQueueTask<DATA, TASK extends NewTask<DATA>> {
     }
 
     private logger() {
-        console.log(`
+        Logger.log(TAG, `
 执行的任务数：${this.getProgressThreadCount()},
 等待的任务数：${this.getWaitTaskCount()},
 剩余任务：${this.getCacheCount() + this.getWaitTaskCount()},
@@ -243,123 +258,4 @@ export default class NewQueueTask<DATA, TASK extends NewTask<DATA>> {
 空闲的线程数：${this.getIdleThreadCount()},
 `);
     }
-
-    // ----------------------------------------------------------------------
-
-    // public cacheTaskQueue: Array<MinShengTask> = new Array<MinShengTask>();
-    //
-    // /** 最大的任务数量 */
-    // public maxTaskNum: number = 2;
-    // public currentTaskNum: number = 0;
-    // public currentIndex: number = 0;
-    // public isStop: boolean = false;
-    //
-    // public completeListener?: Function = null;
-    // public successListener?: TaskSuccessListener = null;
-    // public failListener?: Function = null;
-    // public startListener?: Function = null;
-    // public jumpListener?: Function = null;
-    //
-    // public setTaskNumber(maxTaskNum: number): void {
-    //     this.maxTaskNum = maxTaskNum;
-    // }
-    //
-    // public setCompleteListener(l: Function): void {
-    //     this.completeListener = l;
-    // }
-    //
-    // public setSuccessListener(l: TaskSuccessListener): void {
-    //     this.successListener = l;
-    // }
-    //
-    // public setFailListener(l: Function): void {
-    //     this.failListener = l;
-    // }
-    //
-    // public setStartListener(l: Function): void {
-    //     this.startListener = l;
-    // }
-    //
-    // public setJumpListener(l: Function): void {
-    //     this.jumpListener = l;
-    // }
-    //
-    // public addTask(exec: MinShengTask): void {
-    //     this.cacheTaskQueue.push(exec);
-    //     this.addTaskListener(exec);
-    // }
-    //
-    // private addTaskListener(exec: MinShengTask): void {
-    //     exec.setTaskStartListener((index: number) => {
-    //         if (this.startListener) this.startListener(index);
-    //     });
-    //     exec.setTaskJumpListener((index: number) => {
-    //         if (this.jumpListener) this.jumpListener(index);
-    //         if (this.isStop) {
-    //             return;
-    //         }
-    //         this.nextTask();
-    //     });
-    //     exec.setTaskSuccessListener((index) => {
-    //         if (this.successListener) this.successListener(index);
-    //         if (this.isStop) {
-    //             return;
-    //         }
-    //         this.nextTask();
-    //     });
-    //     exec.setTaskFailListener((index: number, errorCode: string) => {
-    //         if (this.failListener) this.failListener(index, errorCode);
-    //         if (this.isStop) {
-    //             return;
-    //         }
-    //         this.nextTask();
-    //     });
-    // }
-    //
-    // public run(): void {
-    //     console.log("开始执行");
-    //     this.stopAll();
-    //     this.isStop = false;
-    //     let currentRun = 0;
-    //     for (let i = 0; i < this.cacheTaskQueue.length; i++) {
-    //         if (currentRun >= this.maxTaskNum) {
-    //             break;
-    //         }
-    //         if (this.cacheTaskQueue[i].getStatus() !== TaskStatusEnum.SUCCESS) {
-    //             this.cacheTaskQueue[i].run();
-    //             ++currentRun;
-    //             ++this.currentTaskNum;
-    //             ++this.currentIndex;
-    //         }
-    //     }
-    // }
-    //
-    // public stopAll(): void {
-    //     this.isStop = true;
-    //     this.currentTaskNum = 0;
-    //     this.currentIndex = 0;
-    //     for (let i = 0; i < this.cacheTaskQueue.length; i++) {
-    //         this.cacheTaskQueue[i].kill();
-    //     }
-    // }
-    //
-    // public nextTask() {
-    //     let task = undefined;
-    //     for (let i = this.currentIndex; i < this.cacheTaskQueue.length; i++) {
-    //         if (this.cacheTaskQueue[i].getStatus() !== TaskStatusEnum.SUCCESS) {
-    //             task = this.cacheTaskQueue[i];
-    //             this.currentIndex = i;
-    //             break;
-    //         }
-    //     }
-    //     if (!task) {
-    //         --this.currentTaskNum;
-    //         if (this.currentTaskNum <= 0) {
-    //             if (this.completeListener) this.completeListener();
-    //         }
-    //         return;
-    //     }
-    //     task.run();
-    //     ++this.currentIndex;
-    // }
 }

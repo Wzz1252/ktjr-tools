@@ -9,6 +9,7 @@ const TAG: string = "YouXinImplTask";
 
 export default class YouXinImplTask extends NewTask<MinShengEntity> {
     private url: string = "https://data-sharing.renrendai.com/cmbc/accountUrlList";
+
     constructor(data: MinShengEntity) {
         super();
         this.data = data;
@@ -19,6 +20,7 @@ export default class YouXinImplTask extends NewTask<MinShengEntity> {
         Logger.log(TAG, "开启任务");
         this.status = NewTaskStatusEnum.RUNNING;
         this.data.youxinStatus = MinShengStatusEnum.RUNNING;
+        this.eventStart(this.data);
         this.requestYouxinUrl();
     }
 

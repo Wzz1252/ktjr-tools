@@ -47,18 +47,18 @@
                 生成PDF
             </button>
 
-            <button mat-stroked-button color="primary" style="margin-bottom: 6px;"
-                    (click)="onClickTestAddTask()">
-                添加任务
-            </button>
-            <button mat-stroked-button color="primary" style="margin-bottom: 6px;"
-                    (click)="onClickTestRunTask()">
-                执行任务
-            </button>
-            <button mat-stroked-button color="primary" style="margin-bottom: 6px;"
-                    (click)="onClickTestStopTask()">
-                停止任务
-            </button>
+            <!--            <button mat-stroked-button color="primary" style="margin-bottom: 6px;"-->
+            <!--                    (click)="onClickTestAddTask()">-->
+            <!--                添加任务-->
+            <!--            </button>-->
+            <!--            <button mat-stroked-button color="primary" style="margin-bottom: 6px;"-->
+            <!--                    (click)="onClickTestRunTask()">-->
+            <!--                执行任务-->
+            <!--            </button>-->
+            <!--            <button mat-stroked-button color="primary" style="margin-bottom: 6px;"-->
+            <!--                    (click)="onClickTestStopTask()">-->
+            <!--                停止任务-->
+            <!--            </button>-->
         </div>
 
         <div class="setting-layout" style="margin-top: 12px;">
@@ -81,18 +81,29 @@
                     <div class="left-title" style="width:80px;">{{item.productCode}}</div>
                     <div class="left-title" style="width:60px;">{{item.contractNo}}</div>
 
-                    <div class="left-title" style="flex: 1;"
-                         *ngIf="item.status === 'WAIT'">{{item.status}}</div>
-                    <div class="left-title" style="flex: 1; color: deepskyblue;"
-                         *ngIf="item.status === 'LOADING'">{{item.status}}</div>
-                    <div class="left-title" style="flex: 1; color: green;"
-                         *ngIf="item.status === 'SUCCESS'">{{item.status}}</div>
-                    <div class="left-title" style="flex: 1; color: red;"
-                         *ngIf="item.status === 'FAIL'">{{item.status}}{{item.errorCode ? ":" : ""}}{{item.errorCode}}</div>
-                    <div class="left-title" style="flex: 1; color: orange;"
-                         *ngIf="item.status === 'WARN'">{{item.status}}</div>
+                    <!-- URL -->
+                    <div class="left-title" style="width: 90px;"
+                         *ngIf="item.youxinStatus === 'WAIT'">{{item.youxinStatus}}</div>
+                    <div class="left-title" style="width: 90px; color: deepskyblue;"
+                         *ngIf="item.youxinStatus === 'RUNNING'">{{item.youxinStatus}}</div>
+                    <div class="left-title" style="width: 90px; color: green;"
+                         *ngIf="item.youxinStatus === 'SUCCESS'">{{item.youxinStatus}}</div>
+                    <div class="left-title" style="width: 90px; color: red;"
+                         *ngIf="item.youxinStatus === 'FAIL'">{{item.youxinStatus}}</div>
+                    <div class="left-title" style="width: 90px; color: orange;"
+                         *ngIf="item.youxinStatus === 'WARN'">{{item.youxinStatus}}</div>
 
-                    <div class="left-title" style="flex: 1;">{{item.youxinStatus}}</div>
+                    <!-- 民生 -->
+                    <div class="left-title" style="width: 90px;"
+                         *ngIf="item.webStatus === 'WAIT'">{{item.webStatus}}</div>
+                    <div class="left-title" style="width: 90px; color: deepskyblue;"
+                         *ngIf="item.webStatus === 'RUNNING'">{{item.webStatus}}</div>
+                    <div class="left-title" style="width: 90px; color: green;"
+                         *ngIf="item.webStatus === 'SUCCESS'">{{item.webStatus}}</div>
+                    <div class="left-title" style="width: 90px; color: red;"
+                         *ngIf="item.webStatus === 'FAIL'">{{item.webStatus}}</div>
+                    <div class="left-title" style="width: 90px; color: orange;"
+                         *ngIf="item.webStatus === 'WARN'">{{item.webStatus}}</div>
                 </div>
             </div>
             <div class="empty-layout" *ngIf="minShengList.length <= 0">

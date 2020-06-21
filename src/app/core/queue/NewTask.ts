@@ -1,5 +1,8 @@
 import {NewTaskStatusEnum} from "./NewTaskStatusEnum";
-import {TaskFailListener, TaskSuccessListener} from "./TaskSuccessListener";
+import {TaskFailListener, TaskStartListener, TaskSuccessListener} from "./TaskSuccessListener";
+import Logger from "./Logger";
+
+const TAG = "NewTask";
 
 export default class NewTask<ENTITY> {
     public data: ENTITY;
@@ -10,6 +13,7 @@ export default class NewTask<ENTITY> {
     /** 任务状态 */
     public status: NewTaskStatusEnum = NewTaskStatusEnum.WAIT;
 
+    public startListener: TaskStartListener<ENTITY>;
     public successListener: TaskSuccessListener<ENTITY>;
     public failListener: TaskFailListener<ENTITY>;
 
@@ -23,12 +27,23 @@ export default class NewTask<ENTITY> {
         this.eventFail(this.data);
     }
 
+    public setStartListener(l: TaskStartListener<ENTITY>) {
+        this.startListener = l;
+    }
+
     public setSuccessListener(l: TaskSuccessListener<ENTITY>) {
         this.successListener = l;
     }
 
     public setFailListener(l: TaskFailListener<ENTITY>) {
         this.failListener = l;
+    }
+
+    protected eventStart(data: ENTITY) {
+        this.status = NewTaskStatusEnum.RUNNING;
+        if (this.startListener) {
+            this.startListener(data);
+        }
     }
 
     protected eventSuccess(data: ENTITY) {

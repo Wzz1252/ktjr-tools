@@ -2,17 +2,19 @@ import MinShengEntity from "../../entity/MinShengEntity";
 import XLSX from 'node-xlsx';
 import NewQueueTask from "./NewQueueTask";
 import NewTask from "./NewTask";
-import MinShengTask from "../../home/MinShengTask";
 import YouXinImplTask from "./YouXinImplTask";
+import {TaskFailListener, TaskStartListener, TaskSuccessListener} from "./TaskSuccessListener";
+import MinShengWebTask from "./MinShengWebTask";
 import Logger from "./Logger";
-import {TaskFailListener, TaskSuccessListener} from "./TaskSuccessListener";
 
 const TAG = "MinShengController";
 /**
  * 民生控制器
  */
 export default class MinShengController {
-    private youxinQueue: NewQueueTask<MinShengEntity, NewTask<MinShengEntity>> = new NewQueueTask<MinShengEntity, NewTask<MinShengEntity>>();
+    private youxinQueue: NewQueueTask<MinShengEntity, NewTask<MinShengEntity>> = null;
+    private webQueue: NewQueueTask<MinShengEntity, NewTask<MinShengEntity>> = null;
+    private pdfQueue: NewQueueTask<MinShengEntity, NewTask<MinShengEntity>> = null;
 
     private minShengList: Array<MinShengEntity> = new Array<MinShengEntity>();
 
@@ -21,11 +23,22 @@ export default class MinShengController {
     public waitTime: string = "";
     public threadCount: string = "";
 
+    private youxinStart: TaskStartListener<MinShengEntity>;
     private youxinSuccess: TaskSuccessListener<MinShengEntity>;
     private youxinFail: TaskFailListener<MinShengEntity>;
 
+    private webStart: TaskStartListener<MinShengEntity>;
+    private webSuccess: TaskSuccessListener<MinShengEntity>;
+    private webFail: TaskFailListener<MinShengEntity>;
+
+    private pdfStart: TaskStartListener<MinShengEntity>;
+    private pdfSuccess: TaskSuccessListener<MinShengEntity>;
+    private pdfFail: TaskFailListener<MinShengEntity>;
+
     constructor() {
         this.youxinQueue = new NewQueueTask<MinShengEntity, NewTask<MinShengEntity>>();
+        this.webQueue = new NewQueueTask<MinShengEntity, NewTask<MinShengEntity>>();
+        this.pdfQueue = new NewQueueTask<MinShengEntity, NewTask<MinShengEntity>>();
         this.setListener();
     }
 
@@ -33,7 +46,8 @@ export default class MinShengController {
         if (this.minShengList.length <= 0) {
             this.minShengList = this.getMinShengBackXlsx();
         }
-        for (let i = 0; i < this.minShengList.length; i++) {
+
+        for (let i = 0; i < Number(this.threadCount); i++) {
             let task = new YouXinImplTask(this.minShengList[i]);
             this.youxinQueue.addTask2(task);
         }
@@ -80,21 +94,95 @@ export default class MinShengController {
         return xList;
     }
 
+    public setYouxinStartListener(listener: TaskStartListener<MinShengEntity>): void {
+        this.youxinStart = listener;
+    }
+
     public setYouxinSuccessListener(listener: TaskSuccessListener<MinShengEntity>): void {
         this.youxinSuccess = listener;
     }
+
 
     public setYouxinFailListener(listener: TaskFailListener<MinShengEntity>): void {
         this.youxinFail = listener;
     }
 
-    private setListener() :void {
-        if(this.youxinQueue) {
+    public setWebStartListener(listener: TaskStartListener<MinShengEntity>): void {
+        this.webStart = listener;
+    }
+
+    public setWebSuccessListener(listener: TaskSuccessListener<MinShengEntity>): void {
+        this.webSuccess = listener;
+    }
+
+    public setWebFailListener(listener: TaskFailListener<MinShengEntity>): void {
+        this.webFail = listener;
+    }
+
+    public setPdfStartListener(listener: TaskStartListener<MinShengEntity>): void {
+        this.pdfStart = listener;
+    }
+
+    public setPdfSuccessListener(listener: TaskSuccessListener<MinShengEntity>): void {
+        this.pdfSuccess = listener;
+    }
+
+    public setPdfFailListener(listener: TaskFailListener<MinShengEntity>): void {
+        this.pdfFail = listener;
+    }
+
+    private taskCount: number = 0;
+
+    private setListener(): void {
+        if (this.youxinQueue) {
+            this.youxinQueue.setStartListener((data: MinShengEntity) => {
+                if (this.youxinStart) {
+                    this.youxinStart(data);
+                }
+            });
             this.youxinQueue.setSuccessListener((data: MinShengEntity) => {
-                if (this.youxinSuccess) this.youxinSuccess(data);
+                this.taskCount++;
+                Logger.log(TAG, "友信执行成功：", this.taskCount, data.index);
+                if (this.youxinSuccess) {
+                    this.youxinSuccess(data);
+                }
+                let task = new MinShengWebTask(this.minShengList[data.index]);
+                this.webQueue.addTask2(task)
+                this.webQueue.startTask();
             });
             this.youxinQueue.setFailListener((data: MinShengEntity) => {
                 if (this.youxinFail) this.youxinFail(data);
+            });
+        }
+
+        if (this.webQueue) {
+            this.webQueue.setStartListener((data: MinShengEntity) => {
+                if (this.webStart) {
+                    this.webStart(data);
+                }
+            });
+            this.webQueue.setSuccessListener((data: MinShengEntity) => {
+                Logger.log(TAG, "民生网页执行成功：", this.taskCount, data.index);
+                if (this.webSuccess) this.webSuccess(data);
+                let task = new YouXinImplTask(this.minShengList[this.taskCount]);
+                this.youxinQueue.addTask2(task);
+            });
+            this.webQueue.setFailListener((data: MinShengEntity) => {
+                if (this.webFail) this.webFail(data);
+            });
+        }
+
+        if (this.pdfQueue) {
+            this.pdfQueue.setStartListener((data: MinShengEntity) => {
+                if (this.pdfStart) {
+                    this.pdfStart(data);
+                }
+            });
+            this.pdfQueue.setSuccessListener((data: MinShengEntity) => {
+                if (this.pdfSuccess) this.pdfSuccess(data);
+            });
+            this.pdfQueue.setFailListener((data: MinShengEntity) => {
+                if (this.pdfFail) this.pdfFail(data);
             });
         }
     }

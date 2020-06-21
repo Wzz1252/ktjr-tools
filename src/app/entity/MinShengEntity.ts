@@ -37,4 +37,5 @@ export default class MinShengEntity extends TaskEntity {
 
     public youxinTask: YouXinImplTask = null;
     public youxinStatus: MinShengStatusEnum = MinShengStatusEnum.WAIT;
+    public webStatus: MinShengStatusEnum = MinShengStatusEnum.WAIT;
 }

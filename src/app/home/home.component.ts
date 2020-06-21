@@ -1,17 +1,16 @@
-import {Component, OnInit, ChangeDetectorRef, NgZone} from '@angular/core';
+import {ChangeDetectorRef, Component, NgZone, OnInit} from '@angular/core';
 import {Router} from '@angular/router';
 import QueueTask from "./QueueTask";
-import MinShengTask from "./MinShengTask";
 import MinShengEntity from "../entity/MinShengEntity";
 import PDFManager from "./PDFManager";
 import xlsx from 'node-xlsx';
 import jsPDF from 'jspdf';
-import NewQueueTask from "../core/queue/NewQueueTask";
-import NewTask from "../core/queue/NewTask";
-import YouXinImplTask from "../core/queue/YouXinImplTask";
 import MinShengController from "../core/queue/MinShengController";
+import {MinShengStatusEnum} from "../core/queue/MinShengStatusEnum";
+import Logger from "../core/queue/Logger";
 
 const fs = require("fs");
+const TAG = "HomeComponent";
 
 @Component({
     selector: 'app-home',
@@ -37,6 +36,9 @@ export class HomeComponent implements OnInit {
     public queueTask: QueueTask = null;
     public isRun: boolean = false;
     public cursor: number = 0;
+
+    public youxinStatus: MinShengStatusEnum = MinShengStatusEnum.WAIT;
+    public webStatus: MinShengStatusEnum = MinShengStatusEnum.WAIT;
 
     constructor(public router: Router, public ref: ChangeDetectorRef, private zone: NgZone) {
     }
@@ -155,11 +157,32 @@ export class HomeComponent implements OnInit {
         this.minShengController.setExcelPath(this.filePath);
         this.minShengController.setOutput(this.info.webOutPut);
         this.minShengController.setWaitTime(this.info.webWaitTime);
-        this.minShengController.setWaitTime(this.info.taskNum);
+        this.minShengController.setThreadCount(this.info.taskNum);
 
+        this.minShengController.setYouxinStartListener((data: MinShengEntity) => {
+            Logger.log(TAG, "友信 开始执行");
+            this.zone.run(() => data.youxinStatus = data.youxinStatus);
+        });
         this.minShengController.setYouxinSuccessListener((data: MinShengEntity) => {
+            Logger.log(TAG, "友信 执行成功");
+            this.zone.run(() => data.youxinStatus = data.youxinStatus);
         });
         this.minShengController.setYouxinFailListener((data: MinShengEntity) => {
+            Logger.log(TAG, "友信 执行失败");
+            this.zone.run(() => data.youxinStatus = data.youxinStatus);
+        });
+
+        this.minShengController.setWebStartListener((data: MinShengEntity) => {
+            Logger.log(TAG, "民生 开始执行");
+            this.zone.run(() => data.webStatus = data.webStatus);
+        });
+        this.minShengController.setWebSuccessListener((data: MinShengEntity) => {
+            Logger.log(TAG, "民生 执行成功");
+            this.zone.run(() => data.webStatus = data.webStatus);
+        });
+        this.minShengController.setWebFailListener((data: MinShengEntity) => {
+            Logger.log(TAG, "民生 执行失败");
+            this.zone.run(() => data.webStatus = data.webStatus);
         });
 
         this.minShengList = this.minShengController.getMinShengBackXlsx();
