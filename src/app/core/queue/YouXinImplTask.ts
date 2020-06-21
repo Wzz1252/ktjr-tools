@@ -19,16 +19,24 @@ export default class YouXinImplTask extends NewTask<MinShengEntity> {
         super.startTask();
         Logger.log(TAG, "开启任务");
         this.status = NewTaskStatusEnum.RUNNING;
-        this.data.youxinStatus = MinShengStatusEnum.RUNNING;
+        this.eventCallback(MinShengStatusEnum.RUNNING, this.data);
         this.eventStart(this.data);
-        this.requestYouxinUrl();
+        setTimeout(() => {
+            this.requestYouxinUrl();
+        }, 1000);
     }
 
     public stopTask(): void {
+        this.eventCallback(MinShengStatusEnum.ERROR, this.data);
         super.stopTask();
     }
 
     private requestYouxinUrl() {
+        if (!this.isRunTask) {
+            Logger.log(TAG, "任务已终止，请求终止");
+            return;
+        }
+
         axios({
             url: this.url, method: "POST",
             data: `account=${JSON.stringify([{fundAcc: this.data.assetId, idNo: this.data.id}])}`,
@@ -36,26 +44,29 @@ export default class YouXinImplTask extends NewTask<MinShengEntity> {
         }).then((response) => {
             if (!this.isRunTask) {
                 Logger.log(TAG, "任务已终止，请求忽略");
+                this.eventCallback(MinShengStatusEnum.ERROR, this.data);
                 this.eventFail(this.data);
                 return;
             }
             if (response.data.data.length <= 0) {
                 Logger.log(TAG, "请求数据为 NULL，无效数据");
+                this.eventCallback(MinShengStatusEnum.ERROR, this.data);
                 this.eventFail(this.data);
                 return;
             }
 
-            this.data.youxinStatus = MinShengStatusEnum.SUCCESS;
+            this.eventCallback(MinShengStatusEnum.SUCCESS, this.data);
             this.data.url = response.data.data[0].url;
 
             Logger.log(TAG, "请求成功");
             this.eventSuccess(this.data);
             return;
         }).catch((error) => {
-            this.data.youxinStatus = MinShengStatusEnum.ERROR;
+            this.eventCallback(MinShengStatusEnum.ERROR, this.data);
 
             if (!this.isRunTask) {
                 Logger.log(TAG, "任务已终止，错误请求忽略");
+                this.eventCallback(MinShengStatusEnum.ERROR, this.data);
                 this.eventFail(this.data);
                 return;
             }
@@ -65,6 +76,7 @@ export default class YouXinImplTask extends NewTask<MinShengEntity> {
                 // 仅仅捕获 404，如果有其他问题再进行捕获
                 if (String(error.response.status) === "404") {
                     status = String(error.response.status);
+                    this.eventCallback(MinShengStatusEnum.ERROR, this.data);
                     this.eventFail(this.data);
                     // fail(status);
                     return;
@@ -74,6 +86,7 @@ export default class YouXinImplTask extends NewTask<MinShengEntity> {
                 }
             } else {
                 status = "UNKNOWN";
+                this.eventCallback(MinShengStatusEnum.ERROR, this.data);
                 this.eventFail(this.data);
                 Logger.log(TAG, "未捕获的异常信息");
                 // fail(status);

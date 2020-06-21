@@ -3,9 +3,8 @@ import XLSX from 'node-xlsx';
 import NewQueueTask from "./NewQueueTask";
 import NewTask from "./NewTask";
 import YouXinImplTask from "./YouXinImplTask";
-import {TaskFailListener, TaskStartListener, TaskSuccessListener} from "./TaskSuccessListener";
+import TaskCallbackListener from "./TaskCallbackListener";
 import MinShengWebTask from "./MinShengWebTask";
-import Logger from "./Logger";
 
 const TAG = "MinShengController";
 /**
@@ -18,22 +17,17 @@ export default class MinShengController {
 
     private minShengList: Array<MinShengEntity> = new Array<MinShengEntity>();
 
+    private youxinCallback: TaskCallbackListener<MinShengEntity>;
+    private webCallback: TaskCallbackListener<MinShengEntity>;
+    private pdfCallback: TaskCallbackListener<MinShengEntity>;
+
     public excelPath: string = "";
     public output: string = "";
     public waitTime: string = "";
     public threadCount: string = "";
 
-    private youxinStart: TaskStartListener<MinShengEntity>;
-    private youxinSuccess: TaskSuccessListener<MinShengEntity>;
-    private youxinFail: TaskFailListener<MinShengEntity>;
-
-    private webStart: TaskStartListener<MinShengEntity>;
-    private webSuccess: TaskSuccessListener<MinShengEntity>;
-    private webFail: TaskFailListener<MinShengEntity>;
-
-    private pdfStart: TaskStartListener<MinShengEntity>;
-    private pdfSuccess: TaskSuccessListener<MinShengEntity>;
-    private pdfFail: TaskFailListener<MinShengEntity>;
+    public isRunning: boolean = false;
+    private currentUrlTaskCount: number = 0;
 
     constructor() {
         this.youxinQueue = new NewQueueTask<MinShengEntity, NewTask<MinShengEntity>>();
@@ -47,11 +41,30 @@ export default class MinShengController {
             this.minShengList = this.getMinShengBackXlsx();
         }
 
-        for (let i = 0; i < Number(this.threadCount); i++) {
-            let task = new YouXinImplTask(this.minShengList[i]);
-            this.youxinQueue.addTask2(task);
+        if (this.youxinQueue.getCacheQueueSize() === 0) {
+            for (let i = 0; i < this.minShengList.length; i++) {
+                let task = new YouXinImplTask(this.minShengList[i]);
+                this.youxinQueue.addTask2(task);
+            }
         }
+
+        this.isRunning = true;
         this.youxinQueue.startTask();
+        this.webQueue.startTask();
+        this.pdfQueue.startTask();
+    }
+
+    public stop(): void {
+        this.isRunning = true;
+        if (this.youxinQueue) {
+            this.youxinQueue.stopTask();
+        }
+        if (this.webQueue) {
+            this.webQueue.stopTask();
+        }
+        if (this.pdfQueue) {
+            this.pdfQueue.stopTask();
+        }
     }
 
     public setExcelPath(path: string): void {
@@ -94,97 +107,37 @@ export default class MinShengController {
         return xList;
     }
 
-    public setYouxinStartListener(listener: TaskStartListener<MinShengEntity>): void {
-        this.youxinStart = listener;
+    public setYouxinCallback(callback: TaskCallbackListener<MinShengEntity>): void {
+        this.youxinCallback = callback;
     }
 
-    public setYouxinSuccessListener(listener: TaskSuccessListener<MinShengEntity>): void {
-        this.youxinSuccess = listener;
+    public setWebCallback(callback: TaskCallbackListener<MinShengEntity>): void {
+        this.webCallback = callback;
     }
 
-
-    public setYouxinFailListener(listener: TaskFailListener<MinShengEntity>): void {
-        this.youxinFail = listener;
+    public setPdfCallback(callback: TaskCallbackListener<MinShengEntity>): void {
+        this.pdfCallback = callback;
     }
-
-    public setWebStartListener(listener: TaskStartListener<MinShengEntity>): void {
-        this.webStart = listener;
-    }
-
-    public setWebSuccessListener(listener: TaskSuccessListener<MinShengEntity>): void {
-        this.webSuccess = listener;
-    }
-
-    public setWebFailListener(listener: TaskFailListener<MinShengEntity>): void {
-        this.webFail = listener;
-    }
-
-    public setPdfStartListener(listener: TaskStartListener<MinShengEntity>): void {
-        this.pdfStart = listener;
-    }
-
-    public setPdfSuccessListener(listener: TaskSuccessListener<MinShengEntity>): void {
-        this.pdfSuccess = listener;
-    }
-
-    public setPdfFailListener(listener: TaskFailListener<MinShengEntity>): void {
-        this.pdfFail = listener;
-    }
-
-    private taskCount: number = 0;
 
     private setListener(): void {
         if (this.youxinQueue) {
-            this.youxinQueue.setStartListener((data: MinShengEntity) => {
-                if (this.youxinStart) {
-                    this.youxinStart(data);
-                }
-            });
-            this.youxinQueue.setSuccessListener((data: MinShengEntity) => {
-                this.taskCount++;
-                Logger.log(TAG, "友信执行成功：", this.taskCount, data.index);
-                if (this.youxinSuccess) {
-                    this.youxinSuccess(data);
-                }
+            this.youxinQueue.setSuccessListener((data:MinShengEntity)=>{
                 let task = new MinShengWebTask(this.minShengList[data.index]);
                 this.webQueue.addTask2(task)
-                this.webQueue.startTask();
             });
-            this.youxinQueue.setFailListener((data: MinShengEntity) => {
-                if (this.youxinFail) this.youxinFail(data);
-            });
+            this.youxinQueue.setCallback(((statue: any, data: MinShengEntity) => {
+                if (this.youxinCallback) this.youxinCallback(statue, data);
+            }));
         }
-
         if (this.webQueue) {
-            this.webQueue.setStartListener((data: MinShengEntity) => {
-                if (this.webStart) {
-                    this.webStart(data);
-                }
-            });
-            this.webQueue.setSuccessListener((data: MinShengEntity) => {
-                Logger.log(TAG, "民生网页执行成功：", this.taskCount, data.index);
-                if (this.webSuccess) this.webSuccess(data);
-                let task = new YouXinImplTask(this.minShengList[this.taskCount]);
-                this.youxinQueue.addTask2(task);
-            });
-            this.webQueue.setFailListener((data: MinShengEntity) => {
-                if (this.webFail) this.webFail(data);
-            });
+            this.webQueue.setCallback(((statue: any, data: MinShengEntity) => {
+                if (this.webCallback) this.webCallback(statue, data);
+            }));
         }
-
         if (this.pdfQueue) {
-            this.pdfQueue.setStartListener((data: MinShengEntity) => {
-                if (this.pdfStart) {
-                    this.pdfStart(data);
-                }
-            });
-            this.pdfQueue.setSuccessListener((data: MinShengEntity) => {
-                if (this.pdfSuccess) this.pdfSuccess(data);
-            });
-            this.pdfQueue.setFailListener((data: MinShengEntity) => {
-                if (this.pdfFail) this.pdfFail(data);
-            });
+            this.pdfQueue.setCallback(((statue: any, data: MinShengEntity) => {
+                if (this.pdfCallback) this.pdfCallback(statue, data);
+            }));
         }
     }
-
 }

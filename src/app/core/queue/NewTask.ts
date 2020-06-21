@@ -1,6 +1,6 @@
 import {NewTaskStatusEnum} from "./NewTaskStatusEnum";
 import {TaskFailListener, TaskStartListener, TaskSuccessListener} from "./TaskSuccessListener";
-import Logger from "./Logger";
+import TaskCallbackListener from "./TaskCallbackListener";
 
 const TAG = "NewTask";
 
@@ -16,6 +16,7 @@ export default class NewTask<ENTITY> {
     public startListener: TaskStartListener<ENTITY>;
     public successListener: TaskSuccessListener<ENTITY>;
     public failListener: TaskFailListener<ENTITY>;
+    public callback: TaskCallbackListener<ENTITY>;
 
     public startTask(): void {
         this.isRunTask = true;
@@ -24,7 +25,7 @@ export default class NewTask<ENTITY> {
 
     public stopTask(): void {
         this.isRunTask = false;
-        this.eventFail(this.data);
+        // this.eventFail(this.data);
     }
 
     public setStartListener(l: TaskStartListener<ENTITY>) {
@@ -37,6 +38,16 @@ export default class NewTask<ENTITY> {
 
     public setFailListener(l: TaskFailListener<ENTITY>) {
         this.failListener = l;
+    }
+
+    public setTaskCallback(callback: TaskCallbackListener<ENTITY>): void {
+        this.callback = callback;
+    }
+
+    protected eventCallback(state: any, data: ENTITY): void {
+        if (this.callback) {
+            this.callback(state, data);
+        }
     }
 
     protected eventStart(data: ENTITY) {

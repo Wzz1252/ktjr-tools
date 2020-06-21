@@ -70,7 +70,9 @@
                 <div class="left-title" style="width:80px;">末次垫付时间</div>
                 <div class="left-title" style="width:80px;">借款标的ID</div>
                 <div class="left-title" style="width:60px;">进件号</div>
-                <div class="left-title" style="flex: 1;">状态</div>
+                <div class="left-title" style="width:80px;">URL</div>
+                <div class="left-title" style="width:80px;">解析</div>
+                <div class="left-title" style="width:80px;">PDF</div>
             </div>
             <div *ngFor="let item of minShengList; let i = index;">
                 <div class="item-layout">
@@ -82,28 +84,43 @@
                     <div class="left-title" style="width:60px;">{{item.contractNo}}</div>
 
                     <!-- URL -->
-                    <div class="left-title" style="width: 90px;"
-                         *ngIf="item.youxinStatus === 'WAIT'">{{item.youxinStatus}}</div>
-                    <div class="left-title" style="width: 90px; color: deepskyblue;"
-                         *ngIf="item.youxinStatus === 'RUNNING'">{{item.youxinStatus}}</div>
-                    <div class="left-title" style="width: 90px; color: green;"
-                         *ngIf="item.youxinStatus === 'SUCCESS'">{{item.youxinStatus}}</div>
-                    <div class="left-title" style="width: 90px; color: red;"
-                         *ngIf="item.youxinStatus === 'FAIL'">{{item.youxinStatus}}</div>
-                    <div class="left-title" style="width: 90px; color: orange;"
-                         *ngIf="item.youxinStatus === 'WARN'">{{item.youxinStatus}}</div>
+<!--                    <div class="left-title" style="width: 80px;"-->
+<!--                         *ngIf="item.youxinStatus === 'WAIT'">{{item.youxinStatus}}</div>-->
+<!--                    <div class="left-title" style="width: 80px; color: deepskyblue;"-->
+<!--                         *ngIf="item.youxinStatus === 'RUNNING'">{{item.youxinStatus}}</div>-->
+<!--                    <div class="left-title" style="width: 80px; color: green;"-->
+<!--                         *ngIf="item.youxinStatus === 'SUCCESS'">{{item.youxinStatus}}</div>-->
+<!--                    <div class="left-title" style="width: 80px; color: red;"-->
+<!--                         *ngIf="item.youxinStatus === 'FAIL'">{{item.youxinStatus}}</div>-->
+<!--                    <div class="left-title" style="width: 80px; color: orange;"-->
+<!--                         *ngIf="item.youxinStatus === 'WARN'">{{item.youxinStatus}}</div>-->
+                    <div class="left-title" style="width: 80px;">{{item.youxinStatus}}</div>
 
                     <!-- 民生 -->
-                    <div class="left-title" style="width: 90px;"
-                         *ngIf="item.webStatus === 'WAIT'">{{item.webStatus}}</div>
-                    <div class="left-title" style="width: 90px; color: deepskyblue;"
-                         *ngIf="item.webStatus === 'RUNNING'">{{item.webStatus}}</div>
-                    <div class="left-title" style="width: 90px; color: green;"
-                         *ngIf="item.webStatus === 'SUCCESS'">{{item.webStatus}}</div>
-                    <div class="left-title" style="width: 90px; color: red;"
-                         *ngIf="item.webStatus === 'FAIL'">{{item.webStatus}}</div>
-                    <div class="left-title" style="width: 90px; color: orange;"
-                         *ngIf="item.webStatus === 'WARN'">{{item.webStatus}}</div>
+<!--                    <div class="left-title" style="width: 80px;"-->
+<!--                         *ngIf="item.webStatus === 'WAIT'">{{item.webStatus}}</div>-->
+<!--                    <div class="left-title" style="width: 80px; color: deepskyblue;"-->
+<!--                         *ngIf="item.webStatus === 'RUNNING'">{{item.webStatus}}</div>-->
+<!--                    <div class="left-title" style="width: 80px; color: green;"-->
+<!--                         *ngIf="item.webStatus === 'SUCCESS'">{{item.webStatus}}</div>-->
+<!--                    <div class="left-title" style="width: 80px; color: red;"-->
+<!--                         *ngIf="item.webStatus === 'ERROR'">{{item.webStatus}}</div>-->
+<!--                    <div class="left-title" style="width: 80px; color: orange;"-->
+<!--                         *ngIf="item.webStatus === 'WARN'">{{item.webStatus}}</div>-->
+                    <div class="left-title" style="width: 80px;">{{item.webStatus}}</div>
+
+                    <!-- PDF -->
+<!--                    <div class="left-title" style="width: 80px;"-->
+<!--                         *ngIf="item.webStatus === 'WAIT'">{{item.webStatus}}</div>-->
+<!--                    <div class="left-title" style="width: 80px; color: deepskyblue;"-->
+<!--                         *ngIf="item.webStatus === 'RUNNING'">{{item.webStatus}}</div>-->
+<!--                    <div class="left-title" style="width: 80px; color: green;"-->
+<!--                         *ngIf="item.webStatus === 'SUCCESS'">{{item.webStatus}}</div>-->
+<!--                    <div class="left-title" style="width: 80px; color: red;"-->
+<!--                         *ngIf="item.webStatus === 'ERROR'">{{item.webStatus}}</div>-->
+<!--                    <div class="left-title" style="width: 80px; color: orange;"-->
+<!--                         *ngIf="item.webStatus === 'WARN'">{{item.webStatus}}</div>-->
+                    <div class="left-title" style="width: 80px;">{{item.webStatus}}</div>
                 </div>
             </div>
             <div class="empty-layout" *ngIf="minShengList.length <= 0">

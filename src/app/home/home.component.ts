@@ -6,7 +6,6 @@ import PDFManager from "./PDFManager";
 import xlsx from 'node-xlsx';
 import jsPDF from 'jspdf';
 import MinShengController from "../core/queue/MinShengController";
-import {MinShengStatusEnum} from "../core/queue/MinShengStatusEnum";
 import Logger from "../core/queue/Logger";
 
 const fs = require("fs");
@@ -36,9 +35,6 @@ export class HomeComponent implements OnInit {
     public queueTask: QueueTask = null;
     public isRun: boolean = false;
     public cursor: number = 0;
-
-    public youxinStatus: MinShengStatusEnum = MinShengStatusEnum.WAIT;
-    public webStatus: MinShengStatusEnum = MinShengStatusEnum.WAIT;
 
     constructor(public router: Router, public ref: ChangeDetectorRef, private zone: NgZone) {
     }
@@ -72,7 +68,14 @@ export class HomeComponent implements OnInit {
     }
 
     public onClickParseExcel(): void {
-        this.minShengController.start();
+        if (this.isRun) {
+            this.minShengController.stop();
+            this.isRun = false;
+        } else {
+            this.minShengController.start();
+            this.isRun = true;
+        }
+
 
         // ------------------
         // if (this.minShengList.length <= 0) {
@@ -159,30 +162,13 @@ export class HomeComponent implements OnInit {
         this.minShengController.setWaitTime(this.info.webWaitTime);
         this.minShengController.setThreadCount(this.info.taskNum);
 
-        this.minShengController.setYouxinStartListener((data: MinShengEntity) => {
-            Logger.log(TAG, "友信 开始执行");
-            this.zone.run(() => data.youxinStatus = data.youxinStatus);
+        this.minShengController.setYouxinCallback((status: any, data: MinShengEntity) => {
+            Logger.log(TAG, "友信 =+=+: ", status, data);
+            this.zone.run(() => data.youxinStatus = status);
         });
-        this.minShengController.setYouxinSuccessListener((data: MinShengEntity) => {
-            Logger.log(TAG, "友信 执行成功");
-            this.zone.run(() => data.youxinStatus = data.youxinStatus);
-        });
-        this.minShengController.setYouxinFailListener((data: MinShengEntity) => {
-            Logger.log(TAG, "友信 执行失败");
-            this.zone.run(() => data.youxinStatus = data.youxinStatus);
-        });
-
-        this.minShengController.setWebStartListener((data: MinShengEntity) => {
-            Logger.log(TAG, "民生 开始执行");
-            this.zone.run(() => data.webStatus = data.webStatus);
-        });
-        this.minShengController.setWebSuccessListener((data: MinShengEntity) => {
-            Logger.log(TAG, "民生 执行成功");
-            this.zone.run(() => data.webStatus = data.webStatus);
-        });
-        this.minShengController.setWebFailListener((data: MinShengEntity) => {
-            Logger.log(TAG, "民生 执行失败");
-            this.zone.run(() => data.webStatus = data.webStatus);
+        this.minShengController.setWebCallback((status: any, data: MinShengEntity) => {
+            Logger.log(TAG, "民生 =+=+: ", status);
+            this.zone.run(() => data.webStatus = status);
         });
 
         this.minShengList = this.minShengController.getMinShengBackXlsx();

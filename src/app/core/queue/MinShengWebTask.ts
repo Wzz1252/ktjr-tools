@@ -21,12 +21,14 @@ export default class MinShengWebTask extends NewTask<MinShengEntity> {
         super.startTask();
         Logger.log(TAG, "开启任务");
         this.status = NewTaskStatusEnum.RUNNING;
-        this.data.webStatus = MinShengStatusEnum.RUNNING;
+        this.eventCallback(MinShengStatusEnum.RUNNING, this.data);
+        // this.data.webStatus = MinShengStatusEnum.RUNNING;
         this.eventStart(this.data);
         this.runExec();
     }
 
     public stopTask(): void {
+        // this.eventCallback(MinShengStatusEnum.ERROR, this.data);
         super.stopTask();
         if (this.appExec) {
             this.appExec.kill();
@@ -44,21 +46,26 @@ export default class MinShengWebTask extends NewTask<MinShengEntity> {
         this.appExec = exec(command, (error, stdout, stderr) => {
             if (!this.isRunTask) {
                 Logger.log(TAG, "任务已终止，请求解析数据");
+                this.eventCallback(MinShengStatusEnum.ERROR, this.data);
+                // this.data.webStatus = MinShengStatusEnum.ERROR;
                 this.eventFail(this.data);
                 return;
             }
-            // console.log("stdout:", stdout);
-            // console.log("stderr:", stderr);
+            console.log("stdout:", stdout);
+            console.log("stderr:", stderr);
             if (stdout.indexOf("COMPLETE") != -1) {
                 console.log("任务执行完成：", this.data);
-                this.data.webStatus = MinShengStatusEnum.SUCCESS;
+                this.eventCallback(MinShengStatusEnum.SUCCESS, this.data);
+                // this.data.webStatus = MinShengStatusEnum.SUCCESS;
                 this.eventSuccess(this.data);
             } else if (stdout.indexOf("WARN") !== -1) {
-                this.data.webStatus = MinShengStatusEnum.WARN;
+                this.eventCallback(MinShengStatusEnum.WARN, this.data);
+                // this.data.webStatus = MinShengStatusEnum.WARN;
                 this.eventSuccess(this.data); // TODO WRAN
             } else {
                 if (!this.isRunTask) {
-                    this.data.webStatus = MinShengStatusEnum.ERROR;
+                    this.eventCallback(MinShengStatusEnum.ERROR, this.data);
+                    // this.data.webStatus = MinShengStatusEnum.ERROR;
                     this.eventFail(this.data);
                 } else {
                     this.runExec();
