@@ -2,9 +2,10 @@ import {Component, OnInit, ChangeDetectorRef, NgZone} from '@angular/core';
 import {Router} from '@angular/router';
 import xlsx from 'node-xlsx';
 import QueueTask from "./QueueTask";
-import Task from "./Task";
+import MinShengTask from "./MinShengTask";
 import jsPDF from 'jspdf';
 import PDFManager from "./PDFManager";
+import MinShengEntity from "../entity/MinShengEntity";
 
 const fs = require("fs");
 
@@ -19,7 +20,7 @@ export class HomeComponent implements OnInit {
     public static WEB_YEARS: string = "WEB_YEARS";
     public static TASK_NUM: string = "WEB_TASK";
 
-    public evaluateInfo = {
+    public info = {
         webWaitTime: localStorage.getItem(HomeComponent.WEB_WAIT_ITEM) || "1500",
         webOutPut: localStorage.getItem(HomeComponent.WEB_OUT_PUT) || "output/",
         webYears: localStorage.getItem(HomeComponent.WEB_YEARS) || "2",
@@ -28,7 +29,7 @@ export class HomeComponent implements OnInit {
 
     public isShow: boolean = false;
     public errorCode: string = "1";
-    public xlsxList: any[] = [];
+    public xlsxList: Array<MinShengEntity> = new Array<MinShengEntity>();
     public filePath = "";
     public queueTask: QueueTask = null;
     public isRun: boolean = false;
@@ -38,19 +39,19 @@ export class HomeComponent implements OnInit {
     }
 
     public onKeyUpWebWaitTime() {
-        localStorage.setItem(HomeComponent.WEB_WAIT_ITEM, this.evaluateInfo.webWaitTime);
+        localStorage.setItem(HomeComponent.WEB_WAIT_ITEM, this.info.webWaitTime);
     }
 
     public onKeyUpWebOutPut() {
-        localStorage.setItem(HomeComponent.WEB_OUT_PUT, this.evaluateInfo.webOutPut);
+        localStorage.setItem(HomeComponent.WEB_OUT_PUT, this.info.webOutPut);
     }
 
     public onKeyUpWebYears() {
-        localStorage.setItem(HomeComponent.WEB_YEARS, this.evaluateInfo.webYears);
+        localStorage.setItem(HomeComponent.WEB_YEARS, this.info.webYears);
     }
 
     public onKeyUpTaskNum() {
-        localStorage.setItem(HomeComponent.TASK_NUM, this.evaluateInfo.taskNum);
+        localStorage.setItem(HomeComponent.TASK_NUM, this.info.taskNum);
     }
 
     public fileChange(data: any) {
@@ -66,15 +67,9 @@ export class HomeComponent implements OnInit {
 
         console.log("完成: ", this.xlsxList);
         this.queueTask = new QueueTask();
-        this.queueTask.setTaskNumber(Number(this.evaluateInfo.taskNum));
+        this.queueTask.setTaskNumber(Number(this.info.taskNum));
         for (let i = 0; i < this.xlsxList.length; i++) {
-            this.queueTask.addTask(
-                new Task(this.xlsxList[i].command,
-                    String(this.xlsxList[i].index),
-                    this.xlsxList[i],
-                    this.evaluateInfo.webOutPut,
-                    this.evaluateInfo.webWaitTime
-                ));
+            this.queueTask.addTask(new MinShengTask(String(this.xlsxList[i].index), this.xlsxList[i]));
         }
         this.queueTask.setCompleteListener(() => {
             this.zone.run(() => this.isRun = false);
@@ -166,24 +161,24 @@ export class HomeComponent implements OnInit {
     }
 
     /** 解析民生银行 */
-    private getMinShengBackXlsx(path: string): any[] {
+    private getMinShengBackXlsx(path: string): Array<MinShengEntity> {
         const workSheetsFromFile = xlsx.parse(path);
-        let xList = [];
+        let xList: Array<MinShengEntity> = new Array<MinShengEntity>();
         for (let i = 1; i < workSheetsFromFile[0].data.length; i++) {
             let item = workSheetsFromFile[0].data;
-            let natItem = {
-                index: (i - 1),
-                id: item[i][0] || "",               // 身份证号码
-                loanDate: item[i][1] || "",         // 放款时间
-                startAdvanceDate: item[i][2] || "", // 首次垫付时间
-                endAdvanceDate: item[i][3] || "",   // 末次垫付时间
-                productCode: item[i][4] || "",      // 理财端借款标的id
-                contractNo: item[i][5] || "",       // 合同编号
-                assetId: item[i][6] || "",          // 资产ID
-                status: "WAIT",                     // 状态
-                command: ""
-            };
-            xList.push(natItem);
+            let entity = new MinShengEntity();
+            entity.index = (i - 1);
+            entity.id = item[i][0] || "";
+            entity.loanDate = item[i][1] || "";
+            entity.startAdvanceDate = item[i][2] || "";
+            entity.endAdvanceDate = item[i][3] || "";
+            entity.productCode = item[i][4] || "";
+            entity.contractNo = item[i][5] || "";
+            entity.assetId = item[i][6] || "";
+            entity.status = "WAIT";
+            entity.output = this.info.webOutPut;
+            entity.waitTime = this.info.webWaitTime;
+            xList.push(entity);
         }
         return xList;
     }

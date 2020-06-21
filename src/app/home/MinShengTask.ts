@@ -1,32 +1,31 @@
 import {TaskStatusEnum} from "./TaskStatusEnum";
 import EnvPathManager from "../core/env.path.manager";
 import axios from 'axios';
+import MinShengEntity from "../entity/MinShengEntity";
 
 const exec = require('child_process').exec;
 
-export default class Task {
+export default class MinShengTask {
     public status: TaskStatusEnum = TaskStatusEnum.WAIT;
+    /** 请求地址 */
+    private url: string = "https://data-sharing.renrendai.com/cmbc/accountUrlList";
+    /** 用户标记 */
     private tag = "";
-    private testTime: number = 2000;
-    private command: string = "";
-    private webOutPut: string = "";
-    private webWaitTime: string = "";
-    private data: any = {};
+    /** 携带的原始数据 */
+    private readonly data: MinShengEntity = new MinShengEntity();
 
     private taskStartListener?: Function = null;
     private taskSuccessListener?: Function = null;
     private taskFailListener?: Function = null;
     private taskJumpListener?: Function = null;
 
+    /** 执行的任务 */
     private appExec?: any = null;
     private isKill: boolean = false;
 
-    constructor(command: string, index: string, data: any, webOutPut: string, webWaitTime: string) {
-        this.command = command;
+    constructor(index: string, data: MinShengEntity) {
         this.tag = index;
         this.data = data;
-        this.webOutPut = webOutPut;
-        this.webWaitTime = webWaitTime;
     }
 
     public setStatus(status: TaskStatusEnum): void {
@@ -46,7 +45,7 @@ export default class Task {
     }
 
     public run(): void {
-        this.runExec(this.command);
+        this.runExec();
     }
 
     public kill(): void {
@@ -55,10 +54,7 @@ export default class Task {
             if (this.appExec) {
                 this.appExec.kill();
             }
-            this.setStatus(TaskStatusEnum.ERROR);
-            if (this.taskFailListener) {
-                this.taskFailListener(this.getTag(), "");
-            }
+            this.taskFail("");
         }
     }
 
@@ -78,26 +74,21 @@ export default class Task {
         this.taskJumpListener = listener;
     }
 
-    private runExec(command: any) {
+    private runExec() {
         this.isKill = false;
         this.setStatus(TaskStatusEnum.RUNNING);
         if (this.taskStartListener) {
             this.taskStartListener(this.getTag());
         }
         this.requestAxios(() => {
-            if (this.isKill) return;
+            if (this.isKillTask()) return;
 
             // console.log("成功执行了？");
             setTimeout(() => {
-                this.command = this.getReturnCommand(this.data);
-                this.runExecCommand(this.command);
+                this.runExecCommand(this.getReturnCommand(this.data));
             }, 100);
         }, (errorCode: string) => {
-            // console.log("失败执行了？");
-            this.setStatus(TaskStatusEnum.ERROR);
-            if (this.taskFailListener) {
-                this.taskFailListener(this.getTag(), errorCode);
-            }
+            this.taskFail(errorCode);
         }, this.data);
     }
 
@@ -107,23 +98,21 @@ export default class Task {
             success();
             return;
         }
-        if (this.isKill) {
+        if (this.isKillTask()) {
             // console.log("程序被杀死了？");
             fail("");
             return;
         }
         setTimeout(() => {
             axios({
-                url: "https://data-sharing.renrendai.com/cmbc/accountUrlList",
-                method: "POST",
+                url: this.url, method: "POST",
                 data: `account=${JSON.stringify([{
                     fundAcc: this.data.assetId,
                     idNo: this.data.id
                 }])}`,
                 headers: {"Content-Type": "application/x-www-form-urlencoded"}
             }).then((response) => {
-                if (this.isKill) return;
-
+                if (this.isKillTask()) return;
                 if (response.data.data.length <= 0) {
                     fail("NULL");
                     return;
@@ -132,11 +121,11 @@ export default class Task {
                 success();
                 return;
             }).catch((error) => {
-                if (this.isKill) return;
-
+                if (this.isKillTask()) return;
                 let status = "";
                 if (error.response) {
-                    if(String(error.response.status) === "404") {
+                    // 仅仅捕获 404，如果有其他问题再进行捕获
+                    if (String(error.response.status) === "404") {
                         status = String(error.response.status);
                         fail(status);
                         return;
@@ -152,46 +141,67 @@ export default class Task {
         }, 1000);
     }
 
+    /**
+     * 根据命令行执行命令
+     * @param command 命令行
+     */
     private runExecCommand(command: string): void {
         console.log("命令: ", command);
         this.appExec = exec(command, (error, stdout, stderr) => {
-            if (this.isKill) {
+            if (this.isKillTask()) {
                 return;
             }
             console.log("stdout:", stdout);
             console.log("stderr:", stderr);
             if (stdout.indexOf("COMPLETE") != -1) {
-                this.setStatus(TaskStatusEnum.SUCCESS);
-                if (this.taskSuccessListener) {
-                    this.taskSuccessListener(this.getTag());
-                }
+                this.taskSuccess();
             } else if (stdout.indexOf("WARN") !== -1) {
-                // console.log("解析失败，任务退出");
-                this.setStatus(TaskStatusEnum.WARN);
-                if (this.taskJumpListener) {
-                    this.taskJumpListener(this.getTag());
-                }
+                this.taskWarn();
             } else {
-                if (this.isKill) {
-                    // console.log("解析失败，任务退出");
-                    this.setStatus(TaskStatusEnum.ERROR);
-                    if (this.taskFailListener) {
-                        this.taskFailListener(this.getTag(), "");
-                    }
+                if (this.isKillTask()) {
+                    this.taskFail("");
                 } else {
-                    // console.log("解析失败，重试");
-                    this.runExec(command);
+                    this.runExec();
                 }
             }
         });
     }
 
-    public getReturnCommand(data: any): string {
+    private taskSuccess(): void {
+        this.setStatus(TaskStatusEnum.SUCCESS);
+        if (this.taskSuccessListener) {
+            this.taskSuccessListener(this.getTag());
+        }
+    }
+
+    private taskWarn(): void {
+        this.setStatus(TaskStatusEnum.WARN);
+        if (this.taskJumpListener) {
+            this.taskJumpListener(this.getTag());
+        }
+    }
+
+    private taskFail(errorMessage: string): void {
+        this.setStatus(TaskStatusEnum.ERROR);
+        if (this.taskFailListener) {
+            this.taskFailListener(this.getTag(), errorMessage);
+        }
+    }
+
+    /**
+     * 任务是否已经结束
+     * @return true 结束、false 未结束
+     */
+    private isKillTask(): boolean {
+        return this.isKill;
+    }
+
+    public getReturnCommand(data: MinShengEntity): string {
         return EnvPathManager.getPhantomjsPath() + " " +
             EnvPathManager.getPjs() + " " +
             data.url + " " +
-            this.webOutPut + " " +
-            this.webWaitTime + " " +
+            data.output + " " +
+            data.waitTime + " " +
             data.loanDate + " " +           // LoanDate
             data.startAdvanceDate + " " +   // StartAdvanceDate
             data.endAdvanceDate + " " +     // EndAdvanceDate

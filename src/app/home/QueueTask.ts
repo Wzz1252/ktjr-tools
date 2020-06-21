@@ -1,14 +1,15 @@
-import Task from "./Task";
+import MinShengTask from "./MinShengTask";
 import {TaskStatusEnum} from "./TaskStatusEnum";
+import MinShengEntity from "../entity/MinShengEntity";
 
 export default class QueueTask {
+    public cacheTaskQueue: Array<MinShengTask> = new Array<MinShengTask>();
+
+    /** 最大的任务数量 */
     public maxTaskNum: number = 2;
     public currentTaskNum: number = 0;
     public currentIndex: number = 0;
     public isStop: boolean = false;
-
-    public cacheTaskQueue: Task[] = [];
-    public runningTaskQueue: Task[] = [];
 
     public completeListener?: Function = null;
     public successListener?: Function = null;
@@ -40,12 +41,12 @@ export default class QueueTask {
         this.jumpListener = l;
     }
 
-    public addTask(exec: Task): void {
+    public addTask(exec: MinShengTask): void {
         this.cacheTaskQueue.push(exec);
         this.addTaskListener(exec);
     }
 
-    private addTaskListener(exec: Task): void {
+    private addTaskListener(exec: MinShengTask): void {
         exec.setTaskStartListener((index: number) => {
             if (this.startListener) this.startListener(index);
         });
@@ -77,7 +78,6 @@ export default class QueueTask {
         this.stopAll();
         this.isStop = false;
         let currentRun = 0;
-        // let max = Math.min(this.cacheTaskQueue.length, this.maxTaskNum);
         for (let i = 0; i < this.cacheTaskQueue.length; i++) {
             if (currentRun >= this.maxTaskNum) {
                 break;
@@ -109,17 +109,13 @@ export default class QueueTask {
                 break;
             }
         }
-        // let task = this.cacheTaskQueue[this.currentIndex];
-        // console.log("数据", task);
         if (!task) {
             --this.currentTaskNum;
             if (this.currentTaskNum <= 0) {
-                // console.log("结束了？", this.currentTaskNum);
                 if (this.completeListener) this.completeListener();
             }
             return;
         }
-        // console.log("执行新的任务", this.currentTaskNum);
         task.run();
         ++this.currentIndex;
     }

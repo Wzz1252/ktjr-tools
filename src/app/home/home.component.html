@@ -7,25 +7,25 @@
             <span class="title">基本设置</span>
             <div class="setting-item" *ngIf="false">
                 <mat-form-field class="example-full-width">
-                    <input matInput class="s-input" placeholder="抓取等待时间（ms）" [(ngModel)]="evaluateInfo.webWaitTime"
+                    <input matInput class="s-input" placeholder="抓取等待时间（ms）" [(ngModel)]="info.webWaitTime"
                            (keyup)="onKeyUpWebWaitTime()">
                 </mat-form-field>
             </div>
             <div class="setting-item">
                 <mat-form-field class="example-full-width">
-                    <input matInput class="s-input" placeholder="文件输出路径" [(ngModel)]="evaluateInfo.webOutPut"
+                    <input matInput class="s-input" placeholder="文件输出路径" [(ngModel)]="info.webOutPut"
                            (keyup)="onKeyUpWebOutPut()">
                 </mat-form-field>
             </div>
             <div class="setting-item" *ngIf="false">
                 <mat-form-field class="example-full-width">
-                    <input matInput class="s-input" placeholder="向前解析年数" [(ngModel)]="evaluateInfo.webYears"
+                    <input matInput class="s-input" placeholder="向前解析年数" [(ngModel)]="info.webYears"
                            (keyup)="onKeyUpWebYears()">
                 </mat-form-field>
             </div>
             <div class="setting-item" *ngIf="true">
                 <mat-form-field class="example-full-width">
-                    <input matInput class="s-input" placeholder="同时执行的任务数" [(ngModel)]="evaluateInfo.taskNum"
+                    <input matInput class="s-input" placeholder="同时执行的任务数" [(ngModel)]="info.taskNum"
                            (keyup)="onKeyUpTaskNum()">
                 </mat-form-field>
             </div>

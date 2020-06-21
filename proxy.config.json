@@ -1,6 +1,6 @@
 {
-  "/op": {
-    "target": "https://lcl.creditcloud.com",
+  "/cmbc": {
+    "target": "https://data-sharing.renrendai.com/",
     "ws": true,
     "changeOrigin": true,
     "secure": false
