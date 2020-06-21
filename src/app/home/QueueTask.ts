@@ -1,6 +1,6 @@
 import MinShengTask from "./MinShengTask";
 import {TaskStatusEnum} from "./TaskStatusEnum";
-import MinShengEntity from "../entity/MinShengEntity";
+import TaskSuccessListener from "../impl/TaskSuccessListener";
 
 export default class QueueTask {
     public cacheTaskQueue: Array<MinShengTask> = new Array<MinShengTask>();
@@ -12,7 +12,7 @@ export default class QueueTask {
     public isStop: boolean = false;
 
     public completeListener?: Function = null;
-    public successListener?: Function = null;
+    public successListener?: TaskSuccessListener = null;
     public failListener?: Function = null;
     public startListener?: Function = null;
     public jumpListener?: Function = null;
@@ -25,7 +25,7 @@ export default class QueueTask {
         this.completeListener = l;
     }
 
-    public setSuccessListener(l: Function): void {
+    public setSuccessListener(l: TaskSuccessListener): void {
         this.successListener = l;
     }
 
@@ -57,7 +57,7 @@ export default class QueueTask {
             }
             this.nextTask();
         });
-        exec.setTaskSuccessListener((index: number) => {
+        exec.setTaskSuccessListener((index) => {
             if (this.successListener) this.successListener(index);
             if (this.isStop) {
                 return;

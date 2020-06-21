@@ -2,6 +2,7 @@ import {TaskStatusEnum} from "./TaskStatusEnum";
 import EnvPathManager from "../core/env.path.manager";
 import axios from 'axios';
 import MinShengEntity from "../entity/MinShengEntity";
+import TaskSuccessListener from "../impl/TaskSuccessListener";
 
 const exec = require('child_process').exec;
 
@@ -15,7 +16,7 @@ export default class MinShengTask {
     private readonly data: MinShengEntity = new MinShengEntity();
 
     private taskStartListener?: Function = null;
-    private taskSuccessListener?: Function = null;
+    private taskSuccessListener?: TaskSuccessListener = null;
     private taskFailListener?: Function = null;
     private taskJumpListener?: Function = null;
 
@@ -58,7 +59,7 @@ export default class MinShengTask {
         }
     }
 
-    public setTaskSuccessListener(listener: Function): void {
+    public setTaskSuccessListener(listener: TaskSuccessListener): void {
         this.taskSuccessListener = listener;
     }
 
