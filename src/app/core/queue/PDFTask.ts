@@ -23,7 +23,7 @@ export default class PDFTask extends NewTask<MinShengEntity> {
         this.eventStart(this.data);
 
         let path = this.data.output + this.data.contractNo + "-银行流水/";
-        this.data.pdfOutput = this.data.output + this.data.contractNo + "-银行流水-PDF/";
+        this.data.pdfOutput = this.data.output + "PDF/";
 
         new Promise((resolve, reject) => {
             let pdf = new jsPDF('p', 'pt', 'a4', true);
@@ -61,8 +61,8 @@ export default class PDFTask extends NewTask<MinShengEntity> {
             return;
         }
 
-        this.mkdirRecursive(this.data.pdfOutput, ()=>{
-            this.writeFile(this.data.pdfOutput + this.data.id + '.pdf', dataUri);
+        this.mkdirRecursive(this.data.pdfOutput, () => {
+            this.writeFile(this.data.pdfOutput + this.data.contractNo + '-银行流水.pdf', dataUri);
         });
     }
 
@@ -75,7 +75,7 @@ export default class PDFTask extends NewTask<MinShengEntity> {
         });
     }
 
-        /**
+    /**
      * 创建多级目录
      * @param path 创建的目录
      * @param success

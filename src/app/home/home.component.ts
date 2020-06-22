@@ -31,9 +31,9 @@ export class HomeComponent implements OnInit {
         webYears: localStorage.getItem(HomeComponent.WEB_YEARS) || "2",
         taskNum: localStorage.getItem(HomeComponent.TASK_NUM) || "2",
 
-        urlThreadCount: localStorage.getItem(HomeComponent.TASK_NUM) || "1",
-        webThreadCount: localStorage.getItem(HomeComponent.TASK_NUM) || "2",
-        pdfThreadCount: localStorage.getItem(HomeComponent.TASK_NUM) || "1",
+        urlThreadCount: localStorage.getItem(HomeComponent.URL_THREAD_COUNT) || "1",
+        webThreadCount: localStorage.getItem(HomeComponent.WEB_THREAD_COUNT) || "2",
+        pdfThreadCount: localStorage.getItem(HomeComponent.PDF_THREAD_COUNT) || "1",
     };
 
     public isShow: boolean = false;

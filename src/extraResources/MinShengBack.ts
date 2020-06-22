@@ -156,8 +156,10 @@ function parseAccInfoMenu(success: Function, fail: Function) {
 function recursiveParseTransDetailMenu(maxNum: number, mode: string, success: Function, fail: Function) {
     log(`>>>>>>>>> 开始解析[${mode === 'loan' ? ' 放  款 ' : ' 垫  付 '}] <<<<<<<<<`);
     if (mode === 'loan') {
+        log(`11111`);
         if (maxNum > 0) return success();
     } else {
+        log(`22222`);
         if (maxNum >= maxQueryDay) return success();
     }
     currentRetryNumberForPage = 1;

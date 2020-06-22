@@ -23,7 +23,7 @@ export default class YouXinImplTask extends NewTask<MinShengEntity> {
         this.eventStart(this.data);
         setTimeout(() => {
             this.requestYouxinUrl();
-        }, 1000);
+        }, 4000);
     }
 
     public stopTask(): void {
@@ -71,26 +71,20 @@ export default class YouXinImplTask extends NewTask<MinShengEntity> {
                 return;
             }
 
-            let status = "";
             if (error.response) {
                 // 仅仅捕获 404，如果有其他问题再进行捕获
                 if (String(error.response.status) === "404") {
-                    status = String(error.response.status);
                     this.eventCallback(MinShengStatusEnum.ERROR, this.data);
                     this.eventFail(this.data);
-                    // fail(status);
                     return;
                 } else {
-                    // TODO 确定要重试吗？
-                    // this.requestAxios(success, fail, data);
+                    this.eventCallback(error.response.status, this.data);
+                    this.eventFail(this.data);
                 }
             } else {
-                status = "UNKNOWN";
-                this.eventCallback(MinShengStatusEnum.ERROR, this.data);
+                this.eventCallback(MinShengStatusEnum.UNKNOWN, this.data);
                 this.eventFail(this.data);
                 Logger.log(TAG, "未捕获的异常信息");
-                // fail(status);
-                // console.log('未捕获的异常信息', error.message);
             }
         });
     }
