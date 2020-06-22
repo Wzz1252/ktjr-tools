@@ -41,4 +41,30 @@ export default class MinShengEntity extends TaskEntity {
     public youxinStatus: MinShengStatusEnum = MinShengStatusEnum.WAIT;
     public webStatus: MinShengStatusEnum = MinShengStatusEnum.WAIT;
     public pdfStatus: MinShengStatusEnum = MinShengStatusEnum.WAIT;
+
+    /**
+     *                     <!--                    <div class="left-title" style="width: 80px;"-->
+     <!--                         *ngIf="item.youxinStatus === 'WAIT'">{{item.youxinStatus}}</div>-->
+     <!--                    <div class="left-title" style="width: 80px; color: deepskyblue;"-->
+     <!--                         *ngIf="item.youxinStatus === 'RUNNING'">{{item.youxinStatus}}</div>-->
+     <!--                    <div class="left-title" style="width: 80px; color: green;"-->
+     <!--                         *ngIf="item.youxinStatus === 'SUCCESS'">{{item.youxinStatus}}</div>-->
+     <!--                    <div class="left-title" style="width: 80px; color: red;"-->
+     <!--                         *ngIf="item.youxinStatus === 'FAIL'">{{item.youxinStatus}}</div>-->
+     <!--                    <div class="left-title" style="width: 80px; color: orange;"-->
+     <!--                         *ngIf="item.youxinStatus === 'WARN'">{{item.youxinStatus}}</div>-->
+     */
+    getStatusColor(value) {
+        let color = "color: red;"
+        if (value === MinShengStatusEnum.WAIT) {
+            color = "color: black;"
+        } else if (value === MinShengStatusEnum.RUNNING) {
+            color = "color: deepskyblue;"
+        } else if (value === MinShengStatusEnum.SUCCESS) {
+            color = "color: green;"
+        } else if (value === MinShengStatusEnum.WARN) {
+            color = "color: orange;"
+        }
+        return color;
+    }
 }

@@ -23,12 +23,32 @@
                            (keyup)="onKeyUpWebYears()">
                 </mat-form-field>
             </div>
-            <div class="setting-item" *ngIf="true">
-                <mat-form-field class="example-full-width">
-                    <input matInput class="s-input" placeholder="同时执行的任务数" [(ngModel)]="info.taskNum"
-                           (keyup)="onKeyUpTaskNum()">
-                </mat-form-field>
+            <div class="thread-setting-layout">
+                <div class="thread-item" *ngIf="true">
+                    <mat-form-field class="thread-item">
+                        <input matInput class="s-input" placeholder="接口请求线程数" [(ngModel)]="info.urlThreadCount"
+                               (keyup)="onKeyUpUrlThreadCount()">
+                    </mat-form-field>
+                </div>
+                <div class="thread-item" *ngIf="true">
+                    <mat-form-field class="thread-item">
+                        <input matInput class="s-input" placeholder="Web解析线程数" [(ngModel)]="info.webThreadCount"
+                               (keyup)="onKeyUpWebThreadCount()">
+                    </mat-form-field>
+                </div>
+                <div class="thread-item" *ngIf="true">
+                    <mat-form-field class="thread-item">
+                        <input matInput class="s-input" placeholder="PDF生成线程数" [(ngModel)]="info.pdfThreadCount"
+                               (keyup)="onKeyUpPdfThreadCount()">
+                    </mat-form-field>
+                </div>
             </div>
+<!--            <div class="setting-item" *ngIf="true">-->
+<!--                <mat-form-field class="example-full-width">-->
+<!--                    <input matInput class="s-input" placeholder="同时执行的任务数" [(ngModel)]="info.taskNum"-->
+<!--                           (keyup)="onKeyUpTaskNum()">-->
+<!--                </mat-form-field>-->
+<!--            </div>-->
         </div>
 
         <div class="setting-layout">
@@ -67,43 +87,13 @@
                     <div class="left-title" style="width:60px;">{{item.contractNo}}</div>
 
                     <!-- URL -->
-<!--                    <div class="left-title" style="width: 80px;"-->
-<!--                         *ngIf="item.youxinStatus === 'WAIT'">{{item.youxinStatus}}</div>-->
-<!--                    <div class="left-title" style="width: 80px; color: deepskyblue;"-->
-<!--                         *ngIf="item.youxinStatus === 'RUNNING'">{{item.youxinStatus}}</div>-->
-<!--                    <div class="left-title" style="width: 80px; color: green;"-->
-<!--                         *ngIf="item.youxinStatus === 'SUCCESS'">{{item.youxinStatus}}</div>-->
-<!--                    <div class="left-title" style="width: 80px; color: red;"-->
-<!--                         *ngIf="item.youxinStatus === 'FAIL'">{{item.youxinStatus}}</div>-->
-<!--                    <div class="left-title" style="width: 80px; color: orange;"-->
-<!--                         *ngIf="item.youxinStatus === 'WARN'">{{item.youxinStatus}}</div>-->
-                    <div class="left-title" style="width: 80px;">{{item.youxinStatus}}</div>
+                    <div class="left-title" style="width: 80px; {{item.getStatusColor(item.youxinStatus)}}">{{item.youxinStatus}}</div>
 
                     <!-- 民生 -->
-<!--                    <div class="left-title" style="width: 80px;"-->
-<!--                         *ngIf="item.webStatus === 'WAIT'">{{item.webStatus}}</div>-->
-<!--                    <div class="left-title" style="width: 80px; color: deepskyblue;"-->
-<!--                         *ngIf="item.webStatus === 'RUNNING'">{{item.webStatus}}</div>-->
-<!--                    <div class="left-title" style="width: 80px; color: green;"-->
-<!--                         *ngIf="item.webStatus === 'SUCCESS'">{{item.webStatus}}</div>-->
-<!--                    <div class="left-title" style="width: 80px; color: red;"-->
-<!--                         *ngIf="item.webStatus === 'ERROR'">{{item.webStatus}}</div>-->
-<!--                    <div class="left-title" style="width: 80px; color: orange;"-->
-<!--                         *ngIf="item.webStatus === 'WARN'">{{item.webStatus}}</div>-->
-                    <div class="left-title" style="width: 80px;">{{item.webStatus}}</div>
+                    <div class="left-title" style="width: 80px; {{item.getStatusColor(item.webStatus)}}">{{item.webStatus}}</div>
 
                     <!-- PDF -->
-<!--                    <div class="left-title" style="width: 80px;"-->
-<!--                         *ngIf="item.webStatus === 'WAIT'">{{item.webStatus}}</div>-->
-<!--                    <div class="left-title" style="width: 80px; color: deepskyblue;"-->
-<!--                         *ngIf="item.webStatus === 'RUNNING'">{{item.webStatus}}</div>-->
-<!--                    <div class="left-title" style="width: 80px; color: green;"-->
-<!--                         *ngIf="item.webStatus === 'SUCCESS'">{{item.webStatus}}</div>-->
-<!--                    <div class="left-title" style="width: 80px; color: red;"-->
-<!--                         *ngIf="item.webStatus === 'ERROR'">{{item.webStatus}}</div>-->
-<!--                    <div class="left-title" style="width: 80px; color: orange;"-->
-<!--                         *ngIf="item.webStatus === 'WARN'">{{item.webStatus}}</div>-->
-                    <div class="left-title" style="width: 80px;">{{item.pdfStatus}}</div>
+                    <div class="left-title" style="width: 80px; {{item.getStatusColor(item.pdfStatus)}}">{{item.pdfStatus}}</div>
                 </div>
             </div>
             <div class="empty-layout" *ngIf="minShengList.length <= 0">

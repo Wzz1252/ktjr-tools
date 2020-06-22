@@ -40,6 +40,14 @@
                     flex: 1;
                 }
             }
+
+            .thread-setting-layout {
+                display: flex;
+                flex-direction: row;
+                .thread-item {
+                    flex: 1;
+                }
+            }
         }
 
         .textarea-view {

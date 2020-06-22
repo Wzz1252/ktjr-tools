@@ -21,12 +21,19 @@ export class HomeComponent implements OnInit {
     public static WEB_OUT_PUT: string = "WEB_OUT_PUT";
     public static WEB_YEARS: string = "WEB_YEARS";
     public static TASK_NUM: string = "WEB_TASK";
+    public static URL_THREAD_COUNT: string = "URL_THREAD_COUNT";
+    public static WEB_THREAD_COUNT: string = "WEB_THREAD_COUNT";
+    public static PDF_THREAD_COUNT: string = "PDF_THREAD_COUNT";
 
     public info = {
         webWaitTime: localStorage.getItem(HomeComponent.WEB_WAIT_ITEM) || "1500",
         webOutPut: localStorage.getItem(HomeComponent.WEB_OUT_PUT) || "output/",
         webYears: localStorage.getItem(HomeComponent.WEB_YEARS) || "2",
-        taskNum: localStorage.getItem(HomeComponent.TASK_NUM) || "2"
+        taskNum: localStorage.getItem(HomeComponent.TASK_NUM) || "2",
+
+        urlThreadCount: localStorage.getItem(HomeComponent.TASK_NUM) || "1",
+        webThreadCount: localStorage.getItem(HomeComponent.TASK_NUM) || "2",
+        pdfThreadCount: localStorage.getItem(HomeComponent.TASK_NUM) || "1",
     };
 
     public isShow: boolean = false;
@@ -53,6 +60,18 @@ export class HomeComponent implements OnInit {
 
     public onKeyUpTaskNum() {
         localStorage.setItem(HomeComponent.TASK_NUM, this.info.taskNum);
+    }
+
+    public onKeyUpUrlThreadCount() {
+        localStorage.setItem(HomeComponent.URL_THREAD_COUNT, this.info.urlThreadCount);
+    }
+
+    public onKeyUpWebThreadCount() {
+        localStorage.setItem(HomeComponent.WEB_THREAD_COUNT, this.info.webThreadCount);
+    }
+
+    public onKeyUpPdfThreadCount() {
+        localStorage.setItem(HomeComponent.PDF_THREAD_COUNT, this.info.pdfThreadCount);
     }
 
     public onChangeFile(data: any) {
@@ -84,7 +103,9 @@ export class HomeComponent implements OnInit {
         this.minShengController.setExcelPath(this.filePath);
         this.minShengController.setOutput(this.info.webOutPut);
         this.minShengController.setWaitTime(this.info.webWaitTime);
-        this.minShengController.setThreadCount(this.info.taskNum);
+        this.minShengController.setUrlThreadCount(this.info.urlThreadCount);
+        this.minShengController.setWebThreadCount(this.info.webThreadCount);
+        this.minShengController.setPdfThreadCount(this.info.pdfThreadCount);
 
         this.minShengController.setYouxinCallback((status: any, data: MinShengEntity) => {
             Logger.log(TAG, "友信 =+=+: ", status, data);

@@ -25,7 +25,6 @@ export default class MinShengController {
     public excelPath: string = "";
     public output: string = "";
     public waitTime: string = "";
-    public threadCount: string = "";
 
     public isRunning: boolean = false;
     private currentUrlTaskCount: number = 0;
@@ -80,11 +79,22 @@ export default class MinShengController {
         this.waitTime = waitTime;
     }
 
-    public setThreadCount(count: string): void {
-        this.threadCount = count;
-        this.youxinQueue.setThreadCount(Number(this.threadCount));
-        this.webQueue.setThreadCount(Number(this.threadCount));
-        this.pdfQueue.setThreadCount(1); // 只指定一个线程
+    public setUrlThreadCount(count: string): void {
+        if (this.youxinQueue) {
+            this.youxinQueue.setThreadCount(Number(count));
+        }
+    }
+
+    public setWebThreadCount(count: string): void {
+        if (this.webQueue) {
+            this.webQueue.setThreadCount(Number(count));
+        }
+    }
+
+    public setPdfThreadCount(count: string): void {
+        if (this.pdfQueue) {
+            this.pdfQueue.setThreadCount(Number(count));
+        }
     }
 
     /** 解析民生银行 */
@@ -136,7 +146,6 @@ export default class MinShengController {
         if (this.webQueue) {
             this.webQueue.setSuccessListener((data: MinShengEntity) => {
                 let task = new PDFTask(this.minShengList[data.index]);
-                task.setMaxRetryCount(1);
                 this.pdfQueue.addTask2(task)
             });
             this.webQueue.setCallback(((statue: any, data: MinShengEntity) => {
