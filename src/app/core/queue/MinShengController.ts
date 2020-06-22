@@ -5,6 +5,7 @@ import NewTask from "./NewTask";
 import YouXinImplTask from "./YouXinImplTask";
 import TaskCallbackListener from "./TaskCallbackListener";
 import MinShengWebTask from "./MinShengWebTask";
+import PDFTask from "./PDFTask";
 
 const TAG = "MinShengController";
 /**
@@ -81,6 +82,9 @@ export default class MinShengController {
 
     public setThreadCount(count: string): void {
         this.threadCount = count;
+        this.youxinQueue.setThreadCount(Number(this.threadCount));
+        this.webQueue.setThreadCount(Number(this.threadCount));
+        this.pdfQueue.setThreadCount(1);
     }
 
     /** 解析民生银行 */
@@ -121,7 +125,7 @@ export default class MinShengController {
 
     private setListener(): void {
         if (this.youxinQueue) {
-            this.youxinQueue.setSuccessListener((data:MinShengEntity)=>{
+            this.youxinQueue.setSuccessListener((data: MinShengEntity) => {
                 let task = new MinShengWebTask(this.minShengList[data.index]);
                 this.webQueue.addTask2(task)
             });
@@ -130,6 +134,11 @@ export default class MinShengController {
             }));
         }
         if (this.webQueue) {
+            this.webQueue.setSuccessListener((data: MinShengEntity) => {
+                let task = new PDFTask(this.minShengList[data.index]);
+                task.setMaxRetryCount(0);
+                this.pdfQueue.addTask2(task)
+            });
             this.webQueue.setCallback(((statue: any, data: MinShengEntity) => {
                 if (this.webCallback) this.webCallback(statue, data);
             }));

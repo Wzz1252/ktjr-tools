@@ -19,7 +19,7 @@ export default class NewQueueTask<DATA, TASK extends NewTask<DATA>> {
     // 执行中的任务
     private progressQueue: Map<string, Promise<TASK>> = new Map<string, Promise<TASK>>();
 
-    private maxThreadNumber: number = 2;
+    private maxThreadNumber: number = 1;
     private isRunTask: boolean = false;
 
     private startListener: TaskStartListener<DATA>;
@@ -49,10 +49,6 @@ export default class NewQueueTask<DATA, TASK extends NewTask<DATA>> {
             console.log("任务正在执行中...");
             return;
         }
-        // if (this.queue.size <= 0 && this.waitQueue.size <= 0) {
-        //     console.log("请先通过 addTask 添加任务");
-        //     return;
-        // }
         if (this.maxThreadNumber <= 0) {
             console.log("最大线程数不能为 0");
             return;
@@ -60,16 +56,7 @@ export default class NewQueueTask<DATA, TASK extends NewTask<DATA>> {
 
         this.isRunTask = true;
         this.runNextTask();
-        // // 执行线程
-        // let num = Math.min(this.maxThreadNumber, this.queue.size);
-        // let i = 0;
-        // // @ts-ignore
-        // for (let [key, value] of this.queue) {
-        //     if (i < num) {
-        //         this.progressQueue.set(key, this.createProgressTask(key, value));
-        //         i++;
-        //     } else break;
-        // }
+
         this.logger();
     }
 
@@ -103,7 +90,14 @@ export default class NewQueueTask<DATA, TASK extends NewTask<DATA>> {
             let i = 0;
             // @ts-ignore
             for (let [key, value] of queue) {
+                if (value.currentRetry > value.retry) {
+                    _this.removeTaskForQueueeOrWait(key);
+                    _this.runNextTask();
+                    return;
+                }
+
                 if (i < count) {
+                    value.currentRetry++;
                     _this.progressQueue.set(key, _this.createProgressTask(key, value));
                     i++;
                 }
@@ -159,10 +153,7 @@ export default class NewQueueTask<DATA, TASK extends NewTask<DATA>> {
                     this.failListener(data);
                 }
 
-                Logger.log(TAG, "111111111111: ", this.waitQueue);
                 this.waitQueue.set(key, task);
-                Logger.log(TAG, "222222222222: ", this.waitQueue);
-                // this.removeTaskForQueueeOrWait(key);
                 this.removeProgressTaskByIndex(key);
 
                 Logger.log(TAG, "任务执行失败...", key);
@@ -273,6 +264,10 @@ export default class NewQueueTask<DATA, TASK extends NewTask<DATA>> {
             }
         }
         return count;
+    }
+
+    public setThreadCount(count: number):void {
+        this.maxThreadNumber = count;
     }
 
     private logger() {

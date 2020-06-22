@@ -26,6 +26,8 @@ export default class MinShengEntity extends TaskEntity {
 
     /** 输出路径 */
     public output: string = "";
+    /** PDF输出路径 */
+    public pdfOutput: string = "";
     /** 等待时间 */
     public waitTime: string = "";
     /** 状态 */
@@ -38,4 +40,5 @@ export default class MinShengEntity extends TaskEntity {
     public youxinTask: YouXinImplTask = null;
     public youxinStatus: MinShengStatusEnum = MinShengStatusEnum.WAIT;
     public webStatus: MinShengStatusEnum = MinShengStatusEnum.WAIT;
+    public pdfStatus: MinShengStatusEnum = MinShengStatusEnum.WAIT;
 }

@@ -6,7 +6,10 @@ export enum MinShengStatusEnum {
     RUNNING = "RUNNING",
     SUCCESS = "SUCCESS",
     ERROR = "ERROR",
-    WARN = "WARN"
+    WARN = "WARN",
+    DATA_NULL = "DATA_NULL", // 数据为NULL
+    MAKE_DIR_FAIL = "MAKE_DIR_FAIL", // 目录创建失败
+    WRITE_FAIL = "WRITE_FAIL", // 文件写入
 }
 
 

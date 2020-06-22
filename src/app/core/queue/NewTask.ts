@@ -9,6 +9,7 @@ export default class NewTask<ENTITY> {
 
     /** 重试次数 */
     public retry: number = 3;
+    public currentRetry: number = 0;
     public isRunTask: boolean = false;
     /** 任务状态 */
     public status: NewTaskStatusEnum = NewTaskStatusEnum.WAIT;
@@ -26,6 +27,10 @@ export default class NewTask<ENTITY> {
     public stopTask(): void {
         this.isRunTask = false;
         // this.eventFail(this.data);
+    }
+
+    public setMaxRetryCount(retry: number): void {
+        this.retry = retry;
     }
 
     public setStartListener(l: TaskStartListener<ENTITY>) {

@@ -50,7 +50,7 @@ export default class YouXinImplTask extends NewTask<MinShengEntity> {
             }
             if (response.data.data.length <= 0) {
                 Logger.log(TAG, "请求数据为 NULL，无效数据");
-                this.eventCallback(MinShengStatusEnum.ERROR, this.data);
+                this.eventCallback(MinShengStatusEnum.DATA_NULL, this.data);
                 this.eventFail(this.data);
                 return;
             }

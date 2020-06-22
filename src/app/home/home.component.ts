@@ -170,6 +170,10 @@ export class HomeComponent implements OnInit {
             Logger.log(TAG, "民生 =+=+: ", status);
             this.zone.run(() => data.webStatus = status);
         });
+        this.minShengController.setPdfCallback((status: any, data: MinShengEntity) => {
+            Logger.log(TAG, "PDF =+=+: ", status);
+            this.zone.run(() => data.pdfStatus = status);
+        });
 
         this.minShengList = this.minShengController.getMinShengBackXlsx();
 
