@@ -10,7 +10,7 @@ export default class PDFManager {
      * @param path      文件夹目录
      * @param filesList 返回的文件地址
      */
-    public readFileList(path, filesList) {
+    public static readFileList(path, filesList) {
         let files = fs.readdirSync(path);
         files.forEach((value) => {
             let status = fs.statSync(path + value);

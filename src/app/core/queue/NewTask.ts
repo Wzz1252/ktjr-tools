@@ -1,6 +1,8 @@
 import {NewTaskStatusEnum} from "./NewTaskStatusEnum";
 import {TaskFailListener, TaskStartListener, TaskSuccessListener} from "./TaskSuccessListener";
 import TaskCallbackListener from "./TaskCallbackListener";
+import {MinShengStatusEnum} from "./MinShengStatusEnum";
+import Logger from "./Logger";
 
 const TAG = "NewTask";
 
@@ -9,8 +11,11 @@ export default class NewTask<ENTITY> {
 
     /** 重试次数 */
     public retry: number = 3;
+    /** 当前重试次数 */
     public currentRetry: number = 0;
+    /** 是否正在运行 */
     public isRunTask: boolean = false;
+
     /** 任务状态 */
     public status: NewTaskStatusEnum = NewTaskStatusEnum.WAIT;
 
@@ -47,6 +52,14 @@ export default class NewTask<ENTITY> {
 
     public setTaskCallback(callback: TaskCallbackListener<ENTITY>): void {
         this.callback = callback;
+    }
+
+    protected fail(status: MinShengStatusEnum, tag: string, log: string): void {
+        if (tag) {
+            Logger.log(tag, log);
+        }
+        this.eventCallback(MinShengStatusEnum.RUNNING, this.data);
+        this.eventFail(this.data);
     }
 
     protected eventCallback(state: any, data: ENTITY): void {

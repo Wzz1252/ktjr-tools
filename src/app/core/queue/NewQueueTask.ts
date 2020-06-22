@@ -60,6 +60,39 @@ export default class NewQueueTask<DATA, TASK extends NewTask<DATA>> {
         this.logger();
     }
 
+    public stopTask(): void {
+        this.isRunTask = false;
+
+        // 将缓存队列中的任务，全部放到等待队列中
+        // @ts-ignore
+        for (let [key, value] of this.progressQueue) {
+            let task = this.cacheQueue.get(key);
+            task.stopTask();
+            this.waitQueue.set(key, task);
+            this.removeProgressTaskByIndex(key);
+        }
+        this.logger();
+    }
+
+    public closeTask(): void {
+
+    }
+
+    public resetTask(): void {
+
+    }
+
+    public addTask2(task: TASK): void {
+        let uuid = UUIDUtils.buildUUID(32, 32);
+        Logger.log("MinShengController", "添加新任务: ", uuid);
+        this.queue.set(uuid, task);
+        this.cacheQueue.set(uuid, task);
+        if (this.isRunTask) {
+            this.runNextTask();
+        }
+    }
+
+    /** 执行下一个任务 */
     private runNextTask(): void {
         let idleThreadCount = this.getIdleThreadCount();
         let waitTaskCount = this.getWaitTaskCount();
@@ -196,38 +229,6 @@ export default class NewQueueTask<DATA, TASK extends NewTask<DATA>> {
             return this.progressQueue.delete(key);
         } else {
             return false;
-        }
-    }
-
-    public stopTask(): void {
-        this.isRunTask = false;
-
-        // 将缓存队列中的任务，全部放到等待队列中
-        // @ts-ignore
-        for (let [key, value] of this.progressQueue) {
-            let task = this.cacheQueue.get(key);
-            task.stopTask();
-            this.waitQueue.set(key, task);
-            this.removeProgressTaskByIndex(key);
-        }
-        this.logger();
-    }
-
-    public closeTask(): void {
-
-    }
-
-    public resetTask(): void {
-
-    }
-
-    public addTask2(task: TASK): void {
-        let uuid = UUIDUtils.buildUUID(32, 32);
-        Logger.log("MinShengController", "添加新任务: ", uuid);
-        this.queue.set(uuid, task);
-        this.cacheQueue.set(uuid, task);
-        if (this.isRunTask) {
-            this.runNextTask();
         }
     }
 

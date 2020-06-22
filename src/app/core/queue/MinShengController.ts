@@ -84,7 +84,7 @@ export default class MinShengController {
         this.threadCount = count;
         this.youxinQueue.setThreadCount(Number(this.threadCount));
         this.webQueue.setThreadCount(Number(this.threadCount));
-        this.pdfQueue.setThreadCount(1);
+        this.pdfQueue.setThreadCount(1); // 只指定一个线程
     }
 
     /** 解析民生银行 */
@@ -136,7 +136,7 @@ export default class MinShengController {
         if (this.webQueue) {
             this.webQueue.setSuccessListener((data: MinShengEntity) => {
                 let task = new PDFTask(this.minShengList[data.index]);
-                task.setMaxRetryCount(0);
+                task.setMaxRetryCount(1);
                 this.pdfQueue.addTask2(task)
             });
             this.webQueue.setCallback(((statue: any, data: MinShengEntity) => {

@@ -75,82 +75,6 @@ export class HomeComponent implements OnInit {
             this.minShengController.start();
             this.isRun = true;
         }
-
-
-        // ------------------
-        // if (this.minShengList.length <= 0) {
-        //     alert("请先上传 Excel，然后点击获取数据");
-        //     return;
-        // }
-        // if (this.isRun) {
-        //     this.queueTask.stopAll();
-        //     this.isRun = false;
-        // } else {
-        //     this.queueTask.run();
-        //     this.isRun = true;
-        // }
-    }
-
-    public onClickPdf(): void {
-        // let pdfManager = new PDFManager();
-        // let files = [];
-        // pdfManager.readFileList("/Users/torment/output3/1466229-银行流水/", files);
-        // console.log("结果：", files);
-        //
-        // var doc = new jsPDF();
-        // // 获得本地图片
-        // let nativeImage = "";
-        // fs.readFile('/Users/torment/output3/1466229-银行流水/1466229-1账号.png',
-        //     (err, data) => {
-        //         nativeImage = data;
-        //
-        //         for (let i = 1; i < 100; i++) {
-        //             doc.addImage(data, 'PNG', 0, 20, 200, 200);
-        //             doc.addPage();
-        //         }
-        //         console.log("获得本地图片：", err, data);
-        //
-        //         let datauri = doc.output("arraybuffer");
-        //         // @ts-ignore
-        //         fs.writeFile('/Users/torment/output3/pdf/xxx.pdf', new Buffer.from(datauri),
-        //             function (error) {
-        //                 console.log("写入结果: ", error);
-        //             });
-        //     });
-
-        let pdf = new jsPDF('p', 'pt', 'a4', true);
-        this.testAddFile("/Users/torment/output3/", pdf);
-    }
-
-    private async testAddFile(path: string, pdf: jsPDF) {
-        let pdfManager = new PDFManager();
-        let files = [];
-        pdfManager.readFileList(path, files);
-        console.log("结果：", files);
-
-        for (let i = 0; i < files.length; i++) {
-            let content = await this.readFile(files[i].path + files[i].filename);
-            pdf.addPage([files[i].width, files[i].height]);
-            pdf.addImage(content, "PNG", 0, 0, files[i].width, files[i].height, "", "MEDIUM");
-            console.log(`index[${i}]: `, content);
-        }
-        console.log("执行完成...");
-        let dataUri = pdf.output("arraybuffer");
-        console.log("获得数据...");
-        // @ts-ignore
-        fs.writeFile('/Users/torment/xxx.pdf', new Buffer.from(dataUri),
-            function (error) {
-                console.log("写入结果: ", error);
-            });
-    }
-
-    private readFile(pathName: string) {
-        return new Promise((resolve, reject) => {
-            fs.readFile(pathName,
-                (error, data) => {
-                    resolve(data);
-                });
-        });
     }
 
     private minShengController: MinShengController = null;
@@ -176,73 +100,8 @@ export class HomeComponent implements OnInit {
         });
 
         this.minShengList = this.minShengController.getMinShengBackXlsx();
-
-        // --------------------
-        // this.minShengList = this.getMinShengBackXlsx(this.filePath);
-        // console.log("解析 Excel 完成：", this.minShengList);
-        //
-        // this.queueTask = new QueueTask();
-        // this.queueTask.setTaskNumber(Number(this.info.taskNum));
-        //
-        // // 添加任务
-        // for (let i = 0; i < this.minShengList.length; i++) {
-        //     this.queueTask.addTask(new MinShengTask(String(this.minShengList[i].index), this.minShengList[i]));
-        // }
-        //
-        // // 设置各种回调
-        // this.queueTask.setCompleteListener(() => {
-        //     this.zone.run(() => this.isRun = false);
-        //     alert("解析完成！");
-        // });
-        // this.queueTask.setSuccessListener((index) => this.zone.run(() => this.minShengList[index].status = "SUCCESS"));
-        // this.queueTask.setFailListener((index, errorCode) => this.zone.run(() => {
-        //     this.minShengList[index].status = "FAIL";
-        //     this.minShengList[index].errorCode = errorCode;
-        // }));
-        // this.queueTask.setStartListener((index) => this.zone.run(() => this.minShengList[index].status = "LOADING"));
-        // this.queueTask.setJumpListener((index) => this.zone.run(() => this.minShengList[index].status = "WARN"));
-    }
-
-    /** 解析民生银行 */
-    private getMinShengBackXlsx(path: string): Array<MinShengEntity> {
-        const workSheetsFromFile = xlsx.parse(path);
-        let xList: Array<MinShengEntity> = new Array<MinShengEntity>();
-        for (let i = 1; i < workSheetsFromFile[0].data.length; i++) {
-            let item = workSheetsFromFile[0].data;
-            let entity = new MinShengEntity();
-            entity.index = (i - 1);
-            entity.id = item[i][0] || "";
-            entity.loanDate = item[i][1] || "";
-            entity.startAdvanceDate = item[i][2] || "";
-            entity.endAdvanceDate = item[i][3] || "";
-            entity.productCode = item[i][4] || "";
-            entity.contractNo = item[i][5] || "";
-            entity.assetId = item[i][6] || "";
-            entity.status = "WAIT";
-            entity.output = this.info.webOutPut;
-            entity.waitTime = this.info.webWaitTime;
-            xList.push(entity);
-        }
-        return xList;
     }
 
     public ngOnInit(): void {
     }
-
-    // private queue: NewQueueTask<NewTask> = new NewQueueTask<NewTask>();
-    //
-    // public onClickTestAddTask(): void {
-    //     let entity = new MinShengEntity();
-    //     entity.assetId = "9595104284817007";
-    //     entity.id = "513002199109238757";
-    //     this.queue.addTask2(new YouXinImplTask(entity));
-    // }
-    //
-    // public onClickTestRunTask(): void {
-    //     this.queue.startTask();
-    // }
-    //
-    // public onClickTestStopTask(): void {
-    //     this.queue.stopTask();
-    // }
 }
