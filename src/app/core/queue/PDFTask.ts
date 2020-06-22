@@ -18,15 +18,18 @@ export default class PDFTask extends NewTask<MinShengEntity> {
 
     public startTask(): void {
         super.startTask();
+        this.status = NewTaskStatusEnum.RUNNING;
         this.eventCallback(MinShengStatusEnum.RUNNING, this.data);
         this.eventStart(this.data);
 
-        this.setPdfOutputPath();
+        let path = this.data.output + this.data.contractNo + "-银行流水/";
+        this.data.pdfOutput = this.data.output + this.data.contractNo + "-银行流水-PDF/";
 
-        setTimeout(() => {
+        new Promise((resolve, reject) => {
             let pdf = new jsPDF('p', 'pt', 'a4', true);
-            this.testAddFile(this.getWebOutputPath(), pdf);
-        }, 100);
+            pdf.deletePage(1); // 删除第一页
+            this.pdfGeneration(path, pdf);
+        });
     }
 
     public stopTask(): void {
@@ -34,57 +37,45 @@ export default class PDFTask extends NewTask<MinShengEntity> {
         super.stopTask();
     }
 
-    /** 获得网页解析的输出路径 */
-    private getWebOutputPath(): string {
-        if (!this.data) {
-            return;
-        }
-        return this.data.output + this.data.contractNo + "-银行流水/";
-    }
-
-    private setPdfOutputPath(): void {
-        if (!this.data) {
-            return;
-        }
-        this.data.pdfOutput = this.data.output + this.data.contractNo + "-银行流水-PDF/";
-    }
-
-    private async testAddFile(path: string, pdf: jsPDF): Promise<any> {
+    private async pdfGeneration(path: string, pdf: jsPDF): Promise<any> {
         let files = [];
-
-        PDFManager.readFileList(path, files);
-        this.batchAddPictures(pdf, files);
-
+        PDFManager.readJPEGFileList(path, files);
+        PDFManager.jpegSort(files);
+        for (let i = 0; i < files.length; i++) {
+            if (!this.isRunTask) {
+                Logger.log(TAG, "任务终止，停止创建");
+                this.eventCallback(MinShengStatusEnum.ERROR, this.data);
+                this.eventFail(this.data);
+                return;
+            }
+            let content = await this.readFile(files[i].path + files[i].filename);
+            pdf.addPage([files[i].width, files[i].height]);
+            pdf.addImage(content, "JPEG", 0, 0, files[i].width, files[i].height, "", "MEDIUM");
+            Logger.log(TAG, `index[${i}]`);
+        }
         let dataUri = pdf.output("arraybuffer");
-
         if (!this.isRunTask) {
-            this.fail(MinShengStatusEnum.ERROR, TAG, "任务终止，不保存文件");
+            Logger.log(TAG, "任务终止，不保存文件");
+            this.eventCallback(MinShengStatusEnum.ERROR, this.data);
+            this.eventFail(this.data);
             return;
         }
 
-        this.mkdirRecursive(this.data.pdfOutput, () => {
+        this.mkdirRecursive(this.data.pdfOutput, ()=>{
             this.writeFile(this.data.pdfOutput + this.data.id + '.pdf', dataUri);
         });
     }
 
-    private async batchAddPictures(pdf: jsPDF, filesPath: Array<any>): Promise<any> {
-        filesPath = filesPath || [];
-
-        for (let i = 0; i < filesPath.length; i++) {
-            if (!this.isRunTask) {
-                this.fail(MinShengStatusEnum.ERROR, TAG, "任务终止，停止创建");
-                return;
-            }
-
-            let filePath = filesPath[i] || {};
-            let content = await this.readFile(filePath.path + filePath.filename);
-            pdf.addPage([filePath.width, filePath.height]);
-            pdf.addImage(content, "PNG", 0, 0, filePath.width, filePath.height, "", "MEDIUM");
-            Logger.log(TAG, `index[${i}]`);
-        }
+    private readFile(pathName: string) {
+        return new Promise((resolve, reject) => {
+            fs.readFile(pathName,
+                (error, data) => {
+                    resolve(data);
+                });
+        });
     }
 
-    /**
+        /**
      * 创建多级目录
      * @param path 创建的目录
      * @param success
@@ -118,14 +109,5 @@ export default class PDFTask extends NewTask<MinShengEntity> {
                 this.eventSuccess(this.data);
             });
     }
-
-
-    private readFile(pathName: string) {
-        return new Promise((resolve, reject) => {
-            fs.readFile(pathName,
-                (error, data) => {
-                    resolve(data);
-                });
-        });
-    }
 }
+

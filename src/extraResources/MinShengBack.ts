@@ -31,6 +31,8 @@ const RETRY_NUMBER_FOR_PAGE = RETRY_NUMBER;
 const RENDER_WIDTH = 1600;
 /** 页数获取时间 */
 const PAGE_ITEM = 100;
+/** 生成的图片格式 */
+const IMAGE_FORMAT = ".jpeg"
 
 let currentRetryNumberForPage: number = 1;
 
@@ -137,8 +139,8 @@ function parseAccInfoMenu(success: Function, fail: Function) {
         userAccount = data.account;
         userAccountName = data.accountName;
         setScrollHeight();
-        page.render(getOutputPath(argvContractNo + '-1账号.png'));
-        log('渲染成功，文件路径：' + getOutputPath(argvContractNo + '-1账号.png'));
+        page.render(getOutputPath(argvContractNo + '-1账号' + IMAGE_FORMAT));
+        log('渲染成功，文件路径：' + getOutputPath(argvContractNo + '-1账号' + IMAGE_FORMAT));
         log('');
         success();
     }, () => {
@@ -329,7 +331,7 @@ function setStartDateAndEndDateAndRefreshPage(maxNum: number, mode: string,
                 endDateView.value = endDate;
 
                 btnQueryView.click();
-                return {status: '200', message: 'xxx null'};
+                return {status: '200', message: ''};
             } as any, startDate, endDate, mode, argvProductCode);
         },
         () => {
@@ -369,7 +371,7 @@ function resetTotalPage(maxNum: number, mode: string, success: Function, fail: F
                 endDateView.value = endDate;
 
                 btnQueryView.click();
-                return {status: '200', message: 'xxx null'};
+                return {status: '200', message: ''};
             } as any, startDate, endDate, mode, argvProductCode);
         },
         () => {
@@ -444,7 +446,7 @@ function renderHtml(maxNum: number, mode: string, startDate: string, endDate: st
         filePrefix = '3垫付流水';
     }
     log('准备完成，开始渲染...');
-    let fileName = argvContractNo + '-' + filePrefix + '-' + startDate + '-' + endDate + '-PAGE-' + currentPage + '.png';
+    let fileName = argvContractNo + '-' + filePrefix + '-' + startDate + '-' + endDate + '-PAGE-' + autoFilZero(currentPage, 4) + IMAGE_FORMAT;
     page.render(getOutputPath(fileName));
     log('渲染成功，文件路径：' + getOutputPath(fileName));
     log('');
@@ -634,4 +636,8 @@ function __formatTimestamp(timestamp: Date) {
     let secs = ('0' + timestamp.getSeconds()).slice(-2);
     let milliseconds = ('00' + timestamp.getMilliseconds()).slice(-3);
     return year + '-' + month + '-' + date + ' ' + hrs + ':' + mins + ':' + secs + '.' + milliseconds;
+}
+
+function autoFilZero(num, n): string {
+    return (Array(n).join("0") + num).slice(-n);
 }

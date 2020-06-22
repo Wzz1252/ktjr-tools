@@ -10,18 +10,18 @@ export default class PDFManager {
      * @param path      文件夹目录
      * @param filesList 返回的文件地址
      */
-    public static readFileList(path, filesList) {
+    public static readJPEGFileList(path: string, filesList: Array<any>) {
         let files = fs.readdirSync(path);
         files.forEach((value) => {
             let status = fs.statSync(path + value);
             if (status.isDirectory()) {
-                this.readFileList(path + value + "/", filesList)
+                this.readJPEGFileList(path + value + "/", filesList)
             } else {
-                if (value !== ".DS_Store") {
+                if (value !== ".DS_Store" || value.indexOf(".jpeg") != -1) {
+                    let dimensions = imageSize(path + value);
                     let obj: any = {};
                     obj.path = path;
                     obj.filename = value;
-                    let dimensions = imageSize(path + value);
                     obj.width = dimensions.width;
                     obj.height = dimensions.height;
                     filesList.push(obj);
@@ -29,4 +29,18 @@ export default class PDFManager {
             }
         })
     }
+
+    public static jpegSort(filesList: Array<any>) {
+        let compare = function (o1, o2) {
+            if (o1.filename < o2.filename) {
+                return -1;
+            } else if (o1.filename > o2.filename) {
+                return 1;
+            } else {
+                return 0;
+            }
+        }
+        filesList.sort(compare);
+    }
+
 }
