@@ -1,6 +1,6 @@
 import TaskEntity from "../core/queue/TaskEntity";
-import YouXinImplTask from "../core/queue/YouXinImplTask";
-import {MinShengStatusEnum} from "../core/queue/MinShengStatusEnum";
+import YouXinImplTask from "../core/task/YouXinImplTask";
+import {MinShengStatusEnum} from "../core/MinShengStatusEnum";
 
 export default class MinShengEntity extends TaskEntity {
 

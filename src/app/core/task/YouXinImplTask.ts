@@ -1,9 +1,9 @@
-import {NewTaskStatusEnum} from "./NewTaskStatusEnum";
+import {TaskStatusEnum} from "../queue/TaskStatusEnum";
 import NewTask from "./NewTask";
 import axios from "axios";
 import MinShengEntity from "../../entity/MinShengEntity";
-import Logger from "./Logger";
-import {MinShengStatusEnum} from "./MinShengStatusEnum";
+import Logger from "../Logger";
+import {MinShengStatusEnum} from "../MinShengStatusEnum";
 
 const TAG: string = "YouXinImplTask";
 
@@ -18,7 +18,7 @@ export default class YouXinImplTask extends NewTask<MinShengEntity> {
     public startTask(): void {
         super.startTask();
         Logger.log(TAG, "开启任务");
-        this.status = NewTaskStatusEnum.RUNNING;
+        this.status = TaskStatusEnum.RUNNING;
         this.eventCallback(MinShengStatusEnum.RUNNING, this.data);
         this.eventStart(this.data);
         setTimeout(() => {

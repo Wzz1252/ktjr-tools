@@ -1,20 +1,20 @@
-import MinShengEntity from "../../entity/MinShengEntity";
+import MinShengEntity from "../entity/MinShengEntity";
 import XLSX from 'node-xlsx';
-import NewQueueTask from "./NewQueueTask";
-import NewTask from "./NewTask";
-import YouXinImplTask from "./YouXinImplTask";
-import TaskCallbackListener from "./TaskCallbackListener";
-import MinShengWebTask from "./MinShengWebTask";
-import PDFTask from "./PDFTask";
+import QueueTask from "../core/queue/QueueTask";
+import NewTask from "../core/task/NewTask";
+import YouXinImplTask from "../core/task/YouXinImplTask";
+import TaskCallbackListener from "../core/queue/TaskCallbackListener";
+import MinShengWebTask from "../core/task/MinShengWebTask";
+import PDFTask from "../core/task/PDFTask";
 
 const TAG = "MinShengController";
 /**
  * 民生控制器
  */
 export default class MinShengController {
-    private youxinQueue: NewQueueTask<MinShengEntity, NewTask<MinShengEntity>> = null;
-    private webQueue: NewQueueTask<MinShengEntity, NewTask<MinShengEntity>> = null;
-    private pdfQueue: NewQueueTask<MinShengEntity, NewTask<MinShengEntity>> = null;
+    private youxinQueue: QueueTask<MinShengEntity, NewTask<MinShengEntity>> = null;
+    private webQueue: QueueTask<MinShengEntity, NewTask<MinShengEntity>> = null;
+    private pdfQueue: QueueTask<MinShengEntity, NewTask<MinShengEntity>> = null;
 
     private minShengList: Array<MinShengEntity> = new Array<MinShengEntity>();
 
@@ -27,12 +27,11 @@ export default class MinShengController {
     public waitTime: string = "";
 
     public isRunning: boolean = false;
-    private currentUrlTaskCount: number = 0;
 
     constructor() {
-        this.youxinQueue = new NewQueueTask<MinShengEntity, NewTask<MinShengEntity>>();
-        this.webQueue = new NewQueueTask<MinShengEntity, NewTask<MinShengEntity>>();
-        this.pdfQueue = new NewQueueTask<MinShengEntity, NewTask<MinShengEntity>>();
+        this.youxinQueue = new QueueTask<MinShengEntity, NewTask<MinShengEntity>>();
+        this.webQueue = new QueueTask<MinShengEntity, NewTask<MinShengEntity>>();
+        this.pdfQueue = new QueueTask<MinShengEntity, NewTask<MinShengEntity>>();
         this.setListener();
     }
 

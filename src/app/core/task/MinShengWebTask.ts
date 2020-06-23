@@ -1,8 +1,8 @@
-import {NewTaskStatusEnum} from "./NewTaskStatusEnum";
+import {TaskStatusEnum} from "../queue/TaskStatusEnum";
 import NewTask from "./NewTask";
 import MinShengEntity from "../../entity/MinShengEntity";
-import Logger from "./Logger";
-import {MinShengStatusEnum} from "./MinShengStatusEnum";
+import Logger from "../Logger";
+import {MinShengStatusEnum} from "../MinShengStatusEnum";
 import EnvPathManager from "../env.path.manager";
 
 const exec = require('child_process').exec;
@@ -20,7 +20,7 @@ export default class MinShengWebTask extends NewTask<MinShengEntity> {
     public startTask(): void {
         super.startTask();
         Logger.log(TAG, "开启任务");
-        this.status = NewTaskStatusEnum.RUNNING;
+        this.status = TaskStatusEnum.RUNNING;
         this.eventCallback(MinShengStatusEnum.RUNNING, this.data);
         // this.data.webStatus = MinShengStatusEnum.RUNNING;
         this.eventStart(this.data);

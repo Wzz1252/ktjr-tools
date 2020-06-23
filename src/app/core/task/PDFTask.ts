@@ -1,9 +1,9 @@
-import {NewTaskStatusEnum} from "./NewTaskStatusEnum";
+import {TaskStatusEnum} from "../queue/TaskStatusEnum";
 import NewTask from "./NewTask";
 import MinShengEntity from "../../entity/MinShengEntity";
-import Logger from "./Logger";
-import {MinShengStatusEnum} from "./MinShengStatusEnum";
-import PDFManager from "../../home/PDFManager";
+import Logger from "../Logger";
+import {MinShengStatusEnum} from "../MinShengStatusEnum";
+import PDFManager from "../PDFManager";
 import jsPDF from 'jspdf';
 
 const fs = require("fs");
@@ -18,7 +18,7 @@ export default class PDFTask extends NewTask<MinShengEntity> {
 
     public startTask(): void {
         super.startTask();
-        this.status = NewTaskStatusEnum.RUNNING;
+        this.status = TaskStatusEnum.RUNNING;
         this.eventCallback(MinShengStatusEnum.RUNNING, this.data);
         this.eventStart(this.data);
 

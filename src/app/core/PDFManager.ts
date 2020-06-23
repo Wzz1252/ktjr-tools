@@ -1,6 +1,3 @@
-import jsPDF from 'jspdf';
-import {Base64} from 'js-base64';
-
 const imageSize = require('image-size');
 const fs = require("fs");
 
@@ -30,6 +27,10 @@ export default class PDFManager {
         })
     }
 
+    /**
+     * 对 jpeg 进行升序排序
+     * @param filesList 文件列表
+     */
     public static jpegSort(filesList: Array<any>) {
         let compare = function (o1, o2) {
             if (o1.filename < o2.filename) {
@@ -42,5 +43,4 @@ export default class PDFManager {
         }
         filesList.sort(compare);
     }
-
 }

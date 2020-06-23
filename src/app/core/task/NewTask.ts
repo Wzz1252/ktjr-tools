@@ -1,8 +1,8 @@
-import {NewTaskStatusEnum} from "./NewTaskStatusEnum";
-import {TaskFailListener, TaskStartListener, TaskSuccessListener} from "./TaskSuccessListener";
-import TaskCallbackListener from "./TaskCallbackListener";
-import {MinShengStatusEnum} from "./MinShengStatusEnum";
-import Logger from "./Logger";
+import {TaskStatusEnum} from "../queue/TaskStatusEnum";
+import {TaskFailListener, TaskStartListener, TaskSuccessListener} from "../queue/TaskSuccessListener";
+import TaskCallbackListener from "../queue/TaskCallbackListener";
+import {MinShengStatusEnum} from "../MinShengStatusEnum";
+import Logger from "../Logger";
 
 const TAG = "NewTask";
 
@@ -17,7 +17,7 @@ export default class NewTask<ENTITY> {
     public isRunTask: boolean = false;
 
     /** 任务状态 */
-    public status: NewTaskStatusEnum = NewTaskStatusEnum.WAIT;
+    public status: TaskStatusEnum = TaskStatusEnum.WAIT;
 
     public startListener: TaskStartListener<ENTITY>;
     public successListener: TaskSuccessListener<ENTITY>;
@@ -26,7 +26,7 @@ export default class NewTask<ENTITY> {
 
     public startTask(): void {
         this.isRunTask = true;
-        this.status = NewTaskStatusEnum.RUNNING;
+        this.status = TaskStatusEnum.RUNNING;
     }
 
     public stopTask(): void {
@@ -69,21 +69,21 @@ export default class NewTask<ENTITY> {
     }
 
     protected eventStart(data: ENTITY) {
-        this.status = NewTaskStatusEnum.RUNNING;
+        this.status = TaskStatusEnum.RUNNING;
         if (this.startListener) {
             this.startListener(data);
         }
     }
 
     protected eventSuccess(data: ENTITY) {
-        this.status = NewTaskStatusEnum.SUCCESS;
+        this.status = TaskStatusEnum.SUCCESS;
         if (this.successListener) {
             this.successListener(data);
         }
     }
 
     protected eventFail(data: ENTITY) {
-        this.status = NewTaskStatusEnum.ERROR;
+        this.status = TaskStatusEnum.ERROR;
         if (this.failListener) {
             this.failListener(data);
         }

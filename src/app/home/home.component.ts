@@ -1,14 +1,9 @@
 import {ChangeDetectorRef, Component, NgZone, OnInit} from '@angular/core';
 import {Router} from '@angular/router';
-import QueueTask from "./QueueTask";
 import MinShengEntity from "../entity/MinShengEntity";
-import PDFManager from "./PDFManager";
-import xlsx from 'node-xlsx';
-import jsPDF from 'jspdf';
-import MinShengController from "../core/queue/MinShengController";
-import Logger from "../core/queue/Logger";
+import MinShengController from "./MinShengController";
+import Logger from "../core/Logger";
 
-const fs = require("fs");
 const TAG = "HomeComponent";
 
 @Component({
@@ -39,7 +34,6 @@ export class HomeComponent implements OnInit {
     public isShow: boolean = false;
     public minShengList: Array<MinShengEntity> = new Array<MinShengEntity>();
     public filePath = "";
-    public queueTask: QueueTask = null;
     public isRun: boolean = false;
     public cursor: number = 0;
 

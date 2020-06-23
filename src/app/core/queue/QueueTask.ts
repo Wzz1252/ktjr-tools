@@ -1,22 +1,17 @@
-import NewTask from "./NewTask";
-import {NewTaskStatusEnum} from "./NewTaskStatusEnum";
-import UUIDUtils from "./UUIDUtils";
+import NewTask from "../task/NewTask";
+import {TaskStatusEnum} from "./TaskStatusEnum";
+import UUIDUtils from "../UUIDUtils";
 import {TaskFailListener, TaskStartListener, TaskSuccessListener} from "./TaskSuccessListener";
-import Logger from "./Logger";
+import Logger from "../Logger";
 import TaskCallbackListener from "./TaskCallbackListener";
 
-const TAG = "NewQueueTask";
+const TAG = "QueueTask";
 
-export default class NewQueueTask<DATA, TASK extends NewTask<DATA>> {
-    // 缓存队列（存放未完成的任务）
+export default class QueueTask<DATA, TASK extends NewTask<DATA>> {
     private cacheQueue: Map<string, TASK> = new Map<string, TASK>();
-    // 执行任务队列
     private queue: Map<string, TASK> = new Map<string, TASK>();
-    // 完成队列（存放已完成的任务）
     private completeQueue: Map<string, TASK> = new Map<string, TASK>();
-    // 等待队列（存放需要重试的任务
     private waitQueue: Map<string, TASK> = new Map<string, TASK>();
-    // 执行中的任务
     private progressQueue: Map<string, Promise<TASK>> = new Map<string, Promise<TASK>>();
 
     private maxThreadNumber: number = 1;
@@ -46,11 +41,11 @@ export default class NewQueueTask<DATA, TASK extends NewTask<DATA>> {
 
     public startTask(): void {
         if (this.isRunTask) {
-            console.log("任务正在执行中...");
+            Logger.log(TAG, "任务正在执行中...");
             return;
         }
         if (this.maxThreadNumber <= 0) {
-            console.log("最大线程数不能为 0");
+            Logger.log(TAG, "最大线程数不能为 0");
             return;
         }
 
@@ -99,12 +94,12 @@ export default class NewQueueTask<DATA, TASK extends NewTask<DATA>> {
         let taskCount = this.getQueueCount();
 
         if (!this.isRunTask) {
-            console.warn("任务终止...");
+            Logger.warn(TAG, "任务终止...");
             return;
         }
 
         if (idleThreadCount === 0) {
-            console.warn("暂无空闲线程，等待中...");
+            Logger.warn(TAG, "暂无空闲线程，等待中...");
             return;
         }
 
@@ -259,15 +254,15 @@ export default class NewQueueTask<DATA, TASK extends NewTask<DATA>> {
         let count = 0;
         // @ts-ignore
         for (let [key, value] of this.queue) {
-            if (this.queue.get(key).status !== NewTaskStatusEnum.SUCCESS &&
-                this.queue.get(key).status !== NewTaskStatusEnum.RUNNING) {
+            if (this.queue.get(key).status !== TaskStatusEnum.SUCCESS &&
+                this.queue.get(key).status !== TaskStatusEnum.RUNNING) {
                 count++;
             }
         }
         return count;
     }
 
-    public setThreadCount(count: number):void {
+    public setThreadCount(count: number): void {
         this.maxThreadNumber = count;
     }
 
