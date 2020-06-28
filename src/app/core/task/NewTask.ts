@@ -31,7 +31,6 @@ export default class NewTask<ENTITY> {
 
     public stopTask(): void {
         this.isRunTask = false;
-        // this.eventFail(this.data);
     }
 
     public setMaxRetryCount(retry: number): void {

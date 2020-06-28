@@ -43,21 +43,18 @@ export default class PDFTask extends NewTask<MinShengEntity> {
         PDFManager.jpegSort(files);
         for (let i = 0; i < files.length; i++) {
             if (!this.isRunTask) {
-                Logger.log(TAG, "任务终止，停止创建");
-                this.eventCallback(MinShengStatusEnum.ERROR, this.data);
-                this.eventFail(this.data);
+                this.fail(MinShengStatusEnum.ERROR, TAG, "任务终止，停止创建");
                 return;
             }
             let content = await this.readFile(files[i].path + files[i].filename);
             pdf.addPage([files[i].width, files[i].height]);
             pdf.addImage(content, "JPEG", 0, 0, files[i].width, files[i].height, "", "MEDIUM");
-            Logger.log(TAG, `index[${i}]`);
+            Logger.log(TAG, `添加 PDF 图片 [${i}]`);
         }
+
         let dataUri = pdf.output("arraybuffer");
         if (!this.isRunTask) {
-            Logger.log(TAG, "任务终止，不保存文件");
-            this.eventCallback(MinShengStatusEnum.ERROR, this.data);
-            this.eventFail(this.data);
+            this.fail(MinShengStatusEnum.ERROR, TAG, "任务终止，不保存文件");
             return;
         }
 

@@ -43,15 +43,11 @@ export default class YouXinImplTask extends NewTask<MinShengEntity> {
             headers: {"Content-Type": "application/x-www-form-urlencoded"}
         }).then((response) => {
             if (!this.isRunTask) {
-                Logger.log(TAG, "任务已终止，请求忽略");
-                this.eventCallback(MinShengStatusEnum.ERROR, this.data);
-                this.eventFail(this.data);
+                this.fail(MinShengStatusEnum.ERROR, TAG, "任务已终止，请求忽略");
                 return;
             }
             if (response.data.data.length <= 0) {
-                Logger.log(TAG, "请求数据为 NULL，无效数据");
-                this.eventCallback(MinShengStatusEnum.DATA_NULL, this.data);
-                this.eventFail(this.data);
+                this.fail(MinShengStatusEnum.DATA_NULL, TAG, "请求数据为 NULL，无效数据");
                 return;
             }
 
@@ -65,26 +61,20 @@ export default class YouXinImplTask extends NewTask<MinShengEntity> {
             this.eventCallback(MinShengStatusEnum.ERROR, this.data);
 
             if (!this.isRunTask) {
-                Logger.log(TAG, "任务已终止，错误请求忽略");
-                this.eventCallback(MinShengStatusEnum.ERROR, this.data);
-                this.eventFail(this.data);
+                this.fail(MinShengStatusEnum.ERROR, TAG, "任务已终止，错误请求忽略");
                 return;
             }
 
             if (error.response) {
                 // 仅仅捕获 404，如果有其他问题再进行捕获
                 if (String(error.response.status) === "404") {
-                    this.eventCallback(MinShengStatusEnum.ERROR, this.data);
-                    this.eventFail(this.data);
+                    this.fail(MinShengStatusEnum.ERROR_404, TAG, "接口地址不存在");
                     return;
                 } else {
-                    this.eventCallback(error.response.status, this.data);
-                    this.eventFail(this.data);
+                    this.fail(MinShengStatusEnum.ERROR, TAG, "未处理的错误");
                 }
             } else {
-                this.eventCallback(MinShengStatusEnum.UNKNOWN, this.data);
-                this.eventFail(this.data);
-                Logger.log(TAG, "未捕获的异常信息");
+                this.fail(MinShengStatusEnum.UNKNOWN, TAG, "未捕获的异常信息");
             }
         });
     }

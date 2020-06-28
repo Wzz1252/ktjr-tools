@@ -14,14 +14,19 @@ export default class QueueTask<DATA, TASK extends NewTask<DATA>> {
     private waitQueue: Map<string, TASK> = new Map<string, TASK>();
     private progressQueue: Map<string, Promise<TASK>> = new Map<string, Promise<TASK>>();
 
-    private maxThreadNumber: number = 1;
-    private isRunTask: boolean = false;
-
     private startListener: TaskStartListener<DATA>;
     private successListener: TaskSuccessListener<DATA>;
     private failListener: TaskFailListener<DATA>;
 
     private taskCallback: TaskCallbackListener<DATA>;
+
+    private tag? = null;
+    private maxThreadNumber: number = 1;
+    private isRunTask: boolean = false;
+
+    constructor(tag?: string) {
+        this.tag = tag;
+    }
 
     public setStartListener(listener: TaskStartListener<DATA>): void {
         this.startListener = listener;
@@ -39,25 +44,43 @@ export default class QueueTask<DATA, TASK extends NewTask<DATA>> {
         this.taskCallback = callback;
     }
 
-    public startTask(): void {
+    public startServe(): void {
         if (this.isRunTask) {
-            Logger.log(TAG, "任务正在执行中...");
+            this.log("队列已经开启");
             return;
         }
         if (this.maxThreadNumber <= 0) {
-            Logger.log(TAG, "最大线程数不能为 0");
+            this.log("线程数不能为小于0");
             return;
         }
-
+        this.log("开启队列");
         this.isRunTask = true;
         this.runNextTask();
+    }
 
-        this.logger();
+    public stopServe(): void {
+        this.stopTask();
+
+        this.cacheQueue.clear();
+        this.queue.clear();
+        this.completeQueue.clear();
+        this.waitQueue.clear();
+        this.progressQueue.clear();
+    }
+
+    public addTask(task: TASK): void {
+        let uuid = UUIDUtils.buildUUID(32, 32);
+        this.log("新任务: ", uuid);
+        this.queue.set(uuid, task);
+        this.cacheQueue.set(uuid, task);
+
+        if (this.isRunTask) {
+            this.runNextTask();
+        }
     }
 
     public stopTask(): void {
         this.isRunTask = false;
-
         // 将缓存队列中的任务，全部放到等待队列中
         // @ts-ignore
         for (let [key, value] of this.progressQueue) {
@@ -69,24 +92,6 @@ export default class QueueTask<DATA, TASK extends NewTask<DATA>> {
         this.logger();
     }
 
-    public closeTask(): void {
-
-    }
-
-    public resetTask(): void {
-
-    }
-
-    public addTask2(task: TASK): void {
-        let uuid = UUIDUtils.buildUUID(32, 32);
-        Logger.log("MinShengController", "添加新任务: ", uuid);
-        this.queue.set(uuid, task);
-        this.cacheQueue.set(uuid, task);
-        if (this.isRunTask) {
-            this.runNextTask();
-        }
-    }
-
     /** 执行下一个任务 */
     private runNextTask(): void {
         let idleThreadCount = this.getIdleThreadCount();
@@ -94,23 +99,23 @@ export default class QueueTask<DATA, TASK extends NewTask<DATA>> {
         let taskCount = this.getQueueCount();
 
         if (!this.isRunTask) {
-            Logger.warn(TAG, "任务终止...");
+            this.log("任务终止...");
             return;
         }
 
         if (idleThreadCount === 0) {
-            Logger.warn(TAG, "暂无空闲线程，等待中...");
+            this.log("暂无空闲线程，等待中...");
             return;
         }
 
-        Logger.log(TAG,
+        this.log(
             "继续执行任务，闲置线程：", idleThreadCount,
             "等待的任务数：", waitTaskCount,
             "剩余的任务数：", taskCount,
         );
 
         if ((waitTaskCount + taskCount) == 0 && this.getProgressThreadCount() === 0) {
-            Logger.log(TAG, "暂无新任务，暂停");
+            this.log("暂无新任务，等待中...");
             return;
         }
 
@@ -118,8 +123,10 @@ export default class QueueTask<DATA, TASK extends NewTask<DATA>> {
             let i = 0;
             // @ts-ignore
             for (let [key, value] of queue) {
+                // 当前任务已经超过重试
                 if (value.currentRetry > value.retry) {
                     _this.removeTaskForQueueeOrWait(key);
+                    _this.removeProgressTaskByIndex(key);
                     _this.runNextTask();
                     return;
                 }
@@ -127,6 +134,7 @@ export default class QueueTask<DATA, TASK extends NewTask<DATA>> {
                 if (i < count) {
                     value.currentRetry++;
                     _this.progressQueue.set(key, _this.createProgressTask(key, value));
+                    _this.logger();
                     i++;
                 }
             }
@@ -150,7 +158,7 @@ export default class QueueTask<DATA, TASK extends NewTask<DATA>> {
      */
     private createProgressTask(key: string, task: TASK): Promise<TASK> {
         return new Promise((resolve, reject) => {
-            Logger.log(TAG, "开启一个任务: ", key);
+            this.log("开始执行任务: ", key);
             this.removeTaskForQueueeOrWait(key);
 
             task.setTaskCallback((status: any, data: DATA) => {
@@ -172,7 +180,7 @@ export default class QueueTask<DATA, TASK extends NewTask<DATA>> {
                 this.removeTaskForQueueeOrWait(key);
                 this.removeProgressTaskByIndex(key);
 
-                Logger.log(TAG, "任务执行成功...", key);
+                this.log("任务执行成功...", key);
                 this.logger();
                 this.runNextTask();
             })
@@ -184,7 +192,7 @@ export default class QueueTask<DATA, TASK extends NewTask<DATA>> {
                 this.waitQueue.set(key, task);
                 this.removeProgressTaskByIndex(key);
 
-                Logger.log(TAG, "任务执行失败...", key);
+                this.log("任务执行失败...", key);
                 this.logger();
                 this.runNextTask();
             })
@@ -246,8 +254,12 @@ export default class QueueTask<DATA, TASK extends NewTask<DATA>> {
         return this.cacheQueue;
     }
 
-    public getCacheQueueSize(): number {
+    public getCacheQueueCount(): number {
         return this.cacheQueue.size || 0;
+    }
+
+    public getComplateCount(): number {
+        return this.completeQueue.size || 0;
     }
 
     private getQueueCount(): number {
@@ -267,12 +279,21 @@ export default class QueueTask<DATA, TASK extends NewTask<DATA>> {
     }
 
     private logger() {
-        Logger.warn(TAG, `
-执行的任务数：${this.getProgressThreadCount()},
-等待的任务数：${this.getWaitTaskCount()},
-剩余任务：${this.getQueueCount() + this.getWaitTaskCount()},
-完成的任务：${this.completeQueue.size},
-空闲的线程数：${this.getIdleThreadCount()},
-`);
+        this.log(
+            "缓存的任务数：" + this.getCacheQueueCount() + " " +
+            "执行的任务数：" + this.getProgressThreadCount() + " " +
+            "等待的任务数：" + this.getWaitTaskCount() + " " +
+            "剩余的任务数：" + (this.getQueueCount() + this.getWaitTaskCount()) + " " +
+            "完成的任务数：" + this.getComplateCount() + " " +
+            "空闲的线程数：" + this.getIdleThreadCount() + " "
+        );
+    }
+
+    private log(...optionalParams: any): void {
+        let tag = TAG;
+        if (this.tag) {
+            tag = TAG + " | " + this.tag;
+        }
+        Logger.log(tag, ...optionalParams);
     }
 }

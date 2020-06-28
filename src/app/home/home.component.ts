@@ -41,6 +41,9 @@ export class HomeComponent implements OnInit {
                 private zone: NgZone) {
     }
 
+    public ngOnInit(): void {
+    }
+
     public onKeyUpWebWaitTime() {
         localStorage.setItem(HomeComponent.WEB_WAIT_ITEM, this.info.webWaitTime);
     }
@@ -127,8 +130,5 @@ export class HomeComponent implements OnInit {
             alert(errMsg);
         }))
         return controller;
-    }
-
-    public ngOnInit(): void {
     }
 }

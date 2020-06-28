@@ -8,6 +8,7 @@ export enum MinShengStatusEnum {
     ERROR = "ERROR",
     WARN = "WARN",
     DATA_NULL = "DATA_NULL", // 数据为NULL
+    ERROR_404 = "ERROR_404", // 接口不存在
     MAKE_DIR_FAIL = "MAKE_DIR_FAIL", // 目录创建失败
     WRITE_FAIL = "WRITE_FAIL", // 文件写入
     UNKNOWN = "UNKNOWN", // 未知错误

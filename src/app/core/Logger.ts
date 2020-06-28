@@ -3,7 +3,7 @@ export default class Logger {
     /**
      * 是否显示时间
      */
-    private static isShowDate: boolean = true;
+    private static isShowDate: boolean = false;
     /**
      * 是否显示日志级别
      */
@@ -46,7 +46,7 @@ export default class Logger {
 
     static buildConsole(levelStr: string, tagStr: string) {
         let isShowColor: boolean = levelStr != "ERROR" && levelStr != "WARN";
-        let date = Logger.isShowDate ? ((isShowColor ? "%c" : "") + this.__formatTimestamp(new Date()) + " ") : "";
+        let date = Logger.isShowDate ? ((isShowColor ? "%c" : "") + this.__formatTimestamp(new Date()) + " ") : ((isShowColor ? "%c" : "") + "");
         let level = Logger.isShowLevel ? levelStr + " " : "";
         let tag = Logger.isShowTag ? ((isShowColor ? "%c" : "") + ("[") + tagStr + "]") : "";
 
