@@ -49,13 +49,20 @@
             <span class="title">上传 Excel</span>
             <input id="fileField" style="margin-bottom: 6px;" #uploadImg type="file" value="解析 Excel"
                    (change)="onChangeFile($event)">
-            <button mat-stroked-button color="primary" style="margin-bottom: 6px;" (click)="onClickGetData()">
-                获取数据，重新解析
-            </button>
-            <button mat-stroked-button color="primary" style="margin-bottom: 6px;"
-                    (click)="onClickParseExcel()">
-                {{isRun ? "暂停解析" : "开始解析"}}
-            </button>
+            <div class="c-layout">
+                <button mat-stroked-button color="primary" style="flex:1;" (click)="onClickGetData()">
+                    获取数据，重新解析
+                </button>
+                <button mat-stroked-button color="primary" style="flex:1; margin: 0 10px"
+                        (click)="onClickParseExcel()">
+                    {{isRun ? "暂停解析" : "开始解析"}}
+
+                </button>
+                <button mat-stroked-button color="primary" style="flex:1;"
+                        (click)="onClickCreateLogger()">
+                    将解析结果写入文件
+                </button>
+            </div>
         </div>
 
         <div class="setting-layout" style="margin-top: 12px;">
@@ -81,13 +88,16 @@
                     <div class="left-title" style="width:60px;">{{item.contractNo}}</div>
 
                     <!-- URL -->
-                    <div class="left-title" style="width: 80px; {{item.getStatusColor(item.youxinStatus)}}">{{item.youxinStatus}}</div>
+                    <div class="left-title"
+                         style="width: 80px; {{item.getStatusColor(item.youxinStatus)}}">{{item.youxinStatus}}</div>
 
                     <!-- 民生 -->
-                    <div class="left-title" style="width: 80px; {{item.getStatusColor(item.webStatus)}}">{{item.webStatus}}</div>
+                    <div class="left-title"
+                         style="width: 80px; {{item.getStatusColor(item.webStatus)}}">{{item.webStatus}}</div>
 
                     <!-- PDF -->
-                    <div class="left-title" style="width: 80px; {{item.getStatusColor(item.pdfStatus)}}">{{item.pdfStatus}}</div>
+                    <div class="left-title"
+                         style="width: 80px; {{item.getStatusColor(item.pdfStatus)}}">{{item.pdfStatus}}</div>
                 </div>
             </div>
             <div class="empty-layout" *ngIf="minShengList.length <= 0">

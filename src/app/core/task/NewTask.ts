@@ -57,7 +57,7 @@ export default class NewTask<ENTITY> {
         if (tag) {
             Logger.log(tag, log);
         }
-        this.eventCallback(MinShengStatusEnum.RUNNING, this.data);
+        this.eventCallback(status, this.data);
         this.eventFail(this.data);
     }
 

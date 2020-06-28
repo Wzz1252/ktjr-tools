@@ -11,12 +11,13 @@ import {MatButtonModule} from '@angular/material/button';
 import {MatInputModule} from '@angular/material/input';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import {MatSnackBarModule} from '@angular/material/snack-bar';
 
 
 @NgModule({
     declarations: [HomeComponent],
     imports: [CommonModule, SharedModule, HomeRoutingModule, HttpClientModule,
-        MatButtonModule, MatInputModule, MatProgressSpinnerModule, BrowserAnimationsModule]
+        MatButtonModule, MatInputModule, MatProgressSpinnerModule, BrowserAnimationsModule, MatSnackBarModule]
 })
 export class HomeModule {
 }

@@ -63,4 +63,6 @@ export default class Logger {
         let milliseconds = ('00' + timestamp.getMilliseconds()).slice(-3);
         return year + '-' + month + '-' + date + ' ' + hrs + ':' + mins + ':' + secs + '.' + milliseconds;
     }
+
+    static
 }
