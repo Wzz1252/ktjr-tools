@@ -98,6 +98,7 @@ function initSettings() {
 
     argvWaitTime = argvWaitTime || 1000;
     maxQueryDay = Math.ceil(dateDiff(argvStartAdvanceDate, argvEndAdvanceDate) / QUERY_MAX_DAYS);
+    log("-------------------初始结果：", maxQueryDay);
 
     log('');
     log('>>>>>>>>> 基本设置 <<<<<<<<<');
@@ -539,6 +540,8 @@ function getStartAndEndDate2(reDay: number, start: string, end: string): any {
     e.setDate(e.getDate() - (QUERY_MAX_DAYS * reDay));
     r.startDate = dataCompletion(s.getFullYear()) + dataCompletion(s.getMonth() + 1) + dataCompletion(s.getDate());
     r.endDate = dataCompletion(e.getFullYear()) + dataCompletion(e.getMonth() + 1) + dataCompletion(e.getDate());
+
+    console.log("r: ", r.startDate, r.endDate);
     return r;
 }
 
@@ -563,6 +566,11 @@ function getLoanDate(date: string) {
  * @param sDate2
  */
 function dateDiff(sDate1, sDate2) {
+    // 起始时间与结束时间一样，返回固定1天
+    if (sDate1 === sDate2) {
+        return 1;
+    }
+
     let oDate1, oDate2, iDays;
     oDate1 = new Date(sDate1);
     oDate2 = new Date(sDate2);
@@ -570,7 +578,6 @@ function dateDiff(sDate1, sDate2) {
     iDays = parseInt(Math.abs(oDate1 - oDate2) / 1000 / 60 / 60 / 24);
     return iDays;
 }
-
 
 /** 个位数补0 */
 function dataCompletion(data: number): string {

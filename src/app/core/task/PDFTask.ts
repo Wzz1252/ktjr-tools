@@ -11,6 +11,9 @@ const fs = require("fs");
 const TAG: string = "PDFTask";
 
 export default class PDFTask extends NewTask<MinShengEntity> {
+    /** jpeg 文件信息 */
+    private jpegFiles: Array<any> = new Array<any>();
+
     constructor(data: MinShengEntity) {
         super();
         this.data = data;
@@ -22,14 +25,11 @@ export default class PDFTask extends NewTask<MinShengEntity> {
         this.eventCallback(MinShengStatusEnum.RUNNING, this.data);
         this.eventStart(this.data);
 
+        // 文件路径
         let path = this.data.output + this.data.contractNo + "-银行流水/";
         this.data.pdfOutput = this.data.output + "PDF/";
 
-        new Promise((resolve, reject) => {
-            let pdf = new jsPDF('p', 'pt', 'a4', true);
-            pdf.deletePage(1); // 删除第一页
-            this.pdfGeneration(path, pdf);
-        });
+        this.generationPDF(path);
     }
 
     public stopTask(): void {
@@ -37,29 +37,114 @@ export default class PDFTask extends NewTask<MinShengEntity> {
         super.stopTask();
     }
 
-    private async pdfGeneration(path: string, pdf: jsPDF): Promise<any> {
-        let files = [];
-        PDFManager.readJPEGFileList(path, files);
-        PDFManager.jpegSort(files);
-        for (let i = 0; i < files.length; i++) {
+    /**
+     * PDF 生成
+     * @param path  原始文件路径
+     */
+    private async generationPDF(path: string): Promise<any> {
+        await this.generateLoanPDF(path);
+        await this.generateAdvancePDF(path);
+    }
+
+    /**
+     * 获取 JPEG 文件
+     * @param path 原始文件路径
+     */
+    private getJpegFiles(path: string): Array<any> {
+        if (this.jpegFiles.length <= 0) {
+            PDFManager.readJPEGFileList(path, this.jpegFiles);
+            PDFManager.jpegSort(this.jpegFiles);
+        }
+        return this.jpegFiles;
+    }
+
+    private createPDFObj(): jsPDF {
+        let pdf = new jsPDF('p', 'pt', 'a4', true);
+        pdf.deletePage(1); // 删除第一页
+        return pdf;
+    }
+
+    private async addImageToPDF(pdf: jsPDF, jpegs: Array<any>,
+                                fail: (status: MinShengStatusEnum, tag: string, log: string) => void): Promise<any> {
+        for (let i = 0; i < jpegs.length; i++) {
             if (!this.isRunTask) {
-                this.fail(MinShengStatusEnum.ERROR, TAG, "任务终止，停止创建");
+                fail(MinShengStatusEnum.ERROR, TAG, "任务终止，停止创建");
                 return;
             }
-            let content = await this.readFile(files[i].path + files[i].filename);
-            pdf.addPage([files[i].width, files[i].height]);
-            pdf.addImage(content, "JPEG", 0, 0, files[i].width, files[i].height, "", "MEDIUM");
+            let content = await this.readFile(jpegs[i].path + jpegs[i].filename);
+            pdf.addPage([jpegs[i].width, jpegs[i].height]);
+            pdf.addImage(content, "JPEG", 0, 0, jpegs[i].width, jpegs[i].height, "", "MEDIUM");
             Logger.log(TAG, `添加 PDF 图片 [${i}]`);
         }
 
         let dataUri = pdf.output("arraybuffer");
         if (!this.isRunTask) {
-            this.fail(MinShengStatusEnum.ERROR, TAG, "任务终止，不保存文件");
+            fail(MinShengStatusEnum.ERROR, TAG, "任务终止，不保存文件");
             return;
         }
+        return dataUri;
+    }
 
-        this.mkdirRecursive(this.data.pdfOutput, () => {
-            this.writeFile(this.data.pdfOutput + this.data.contractNo + '-银行流水.pdf', dataUri);
+    /**
+     * 生成放款相关的逻辑
+     * @param path 原始文件路径
+     */
+    private async generateLoanPDF(path: string): Promise<any> {
+        let pdf = this.createPDFObj();
+
+        this.getJpegFiles(path);
+        let list: Array<any> = [];
+        for (let i = 0; i < this.jpegFiles.length; i++) {
+            let jpegData = this.jpegFiles[i] || {};
+            if (jpegData.filename.indexOf("账号") !== -1 ||
+                jpegData.filename.indexOf("放款流水") !== -1
+            ) {
+                list.push(jpegData);
+            }
+        }
+        let dataUri = await this.addImageToPDF(pdf, list, (status, tag, log) => {
+            this.fail(status, tag, log);
+            return;
+        });
+
+        let natPath = this.data.pdfOutput + "放款流水/";
+        this.writeContentToPDF(natPath, this.data.contractNo + '-银行放款流水.pdf', dataUri);
+    }
+
+    /**
+     * 生成垫付相关的逻辑
+     * @param path 原始文件路径
+     */
+    private async generateAdvancePDF(path: string): Promise<any> {
+        let pdf = this.createPDFObj();
+
+        this.getJpegFiles(path);
+        let list: Array<any> = [];
+        for (let i = 0; i < this.jpegFiles.length; i++) {
+            let jpegData = this.jpegFiles[i] || {};
+            if (jpegData.filename.indexOf("垫付流水") !== -1) {
+                list.push(jpegData);
+            }
+        }
+
+        let dataUri = await this.addImageToPDF(pdf, list, (status, tag, log) => {
+            this.fail(status, tag, log);
+            return;
+        });
+
+        let natPath = this.data.pdfOutput + "垫付流水/";
+        this.writeContentToPDF(natPath, this.data.contractNo + '-银行垫付流水.pdf', dataUri);
+    }
+
+    /**
+     * 将内容写入pdf 输出目录
+     * @param path      文件路径
+     * @param filename  文件名称
+     * @param conetnt   文件内容
+     */
+    private writeContentToPDF(path: string, filename: string, conetnt: string) {
+        this.mkdirRecursive(path, () => {
+            this.writeFile(path + filename, conetnt);
         });
     }
 
