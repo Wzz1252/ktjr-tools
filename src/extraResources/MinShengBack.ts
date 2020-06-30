@@ -17,6 +17,13 @@ const PAGE_ITEM = 100;
 /** 生成的图片格式 */
 const IMAGE_FORMAT = ".jpeg"
 
+/** 放款 code 传 000000 */
+const MODE_LOAN = "loan";
+/** 放款 code 传 argvContractNo */
+const MODE_LOAN_CODE = "loan_code";
+/** 垫付 */
+const MODE_ADVANCE = "advance";
+
 let currentRetryNumberForPage: number = 1;
 
 let argvUrl: string = system.args[1];
@@ -55,11 +62,22 @@ page.open(argvUrl, function (status) {
         log('页面加载成功...');
         log('');
         // page.evaluate(addHeaderImage());
+
+        // parseAccInfoMenu(() => {
+        //     recursiveParseTransDetailMenu(0, 'loan', () => {
+        //         recursiveParseTransDetailMenu(0, 'advance',
+        //             () => exitProgram(true),
+        //             () => exitProgram(false));
+        //     }, () => exitProgram(false));
+        // }, () => exitProgram(false));
+
         parseAccInfoMenu(() => {
-            recursiveParseTransDetailMenu(0, 'loan', () => {
-                recursiveParseTransDetailMenu(0, 'advance',
-                    () => exitProgram(true),
-                    () => exitProgram(false));
+            recursiveParseTransDetailMenu(0, MODE_LOAN, () => {
+                recursiveParseTransDetailMenu(0, MODE_LOAN_CODE, () => {
+                    recursiveParseTransDetailMenu(0, MODE_ADVANCE,
+                        () => exitProgram(true),
+                        () => exitProgram(false));
+                }, fail => exitProgram(false));
             }, () => exitProgram(false));
         }, () => exitProgram(false));
     } else {
@@ -138,7 +156,7 @@ function parseAccInfoMenu(success: Function, fail: Function) {
  */
 function recursiveParseTransDetailMenu(maxNum: number, mode: string, success: Function, fail: Function) {
     log(`>>>>>>>>> 开始解析[${mode === 'loan' ? ' 放  款 ' : ' 垫  付 '}] <<<<<<<<<`);
-    if (mode === 'loan') {
+    if (mode === MODE_LOAN || mode == MODE_LOAN_CODE) {
         if (maxNum > 0) return success();
     } else {
         if (maxNum >= maxQueryDay) return success();
@@ -284,8 +302,11 @@ function setStartDateAndEndDateAndRefreshPage(maxNum: number, mode: string,
                                               success: (startDate: string, endDate: string) => void,
                                               fail: Function) {
     let date: any = {startDate: '', endDate: ''};
-    if (mode === 'loan') date = getLoanDate(argvLoanDate);
-    else date = getStartAndEndDate2(maxNum, argvStartAdvanceDate, argvEndAdvanceDate);
+    if (mode === MODE_LOAN || mode === MODE_LOAN_CODE) {
+        date = getLoanDate(argvLoanDate);
+    } else {
+        date = getStartAndEndDate2(maxNum, argvStartAdvanceDate, argvEndAdvanceDate);
+    }
 
     let startDate = date.startDate;
     let endDate = date.endDate;
@@ -307,8 +328,13 @@ function setStartDateAndEndDateAndRefreshPage(maxNum: number, mode: string,
                 if (!prdCodeView) return {status: '-1', message: 'prdCodeView null'};
 
                 // 对 放款与垫付 进行优化
-                if (mode === 'loan') prdCodeView.value = '';
-                else prdCodeView.value = argvProductCode || '';
+                if (mode === 'loan') {
+                    prdCodeView.value = '000000';
+                } else if (mode === 'loan_code') {
+                    prdCodeView.value = argvProductCode || '';
+                } else {
+                    prdCodeView.value = argvProductCode || '';
+                }
 
                 startDateView.value = startDate;
                 endDateView.value = endDate;
@@ -423,8 +449,10 @@ function getTotalPage(success: (page: number) => void, fail: Function): void {
 function renderHtml(maxNum: number, mode: string, startDate: string, endDate: string) {
     setScrollHeight();
     let filePrefix = '';
-    if (mode === 'loan') {
-        filePrefix = '2放款流水';
+    if (mode === MODE_LOAN) {
+        filePrefix = '2放款流水_N';
+    } else if (mode === MODE_LOAN_CODE) {
+        filePrefix = '2放款流水_C';
     } else {
         filePrefix = '3垫付流水';
     }
