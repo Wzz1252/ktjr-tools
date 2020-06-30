@@ -11,7 +11,7 @@ const RETRY_NUMBER = 25;
 /** 重试次数 获取页面 */
 const RETRY_NUMBER_FOR_PAGE = RETRY_NUMBER;
 /** 图片宽度 */
-const RENDER_WIDTH = 1600;
+const RENDER_WIDTH = 1920;
 /** 页数获取时间 */
 const PAGE_ITEM = 100;
 /** 生成的图片格式 */
@@ -239,10 +239,42 @@ function nativeRenderFun(maxNum: number, mode: string, startDate: string, endDat
                 for (let i = 0; i < pa.length; i++) {
                     if (pa[i].innerHTML === '跳转') code = '200';
                 }
-                return {status: code, data: {select: msPageItem.innerHTML}};
+
+                // TODO 将 iframe 中的内容进行替换
+                let wapper = document.getElementsByClassName("wapper")[1];
+                let div: any = document.getElementById("custom_core_id");
+                if (!div) {
+                    div = document.createElement("div");
+                    div.setAttribute("id", "custom_core_id");
+                    wapper.insertBefore(div, ifm);
+                }
+                div.innerHTML = nDocument.getElementsByTagName("html")[0].innerHTML;
+                ifm.style.display = "none";
+                ifm.style.width = "1px";
+                ifm.style.height = "1px";
+
+                // @ts-ignore
+                document.getElementsByClassName("mian_right")[0].style.backgroundColor = "#ffffff";
+                // @ts-ignore
+                document.getElementsByClassName("mian_right")[0].style.width = "1009px";
+                // @ts-ignore
+                document.getElementsByClassName("mian_right")[0].style.marginLeft = "241px";
+
+                // @ts-ignore
+                document.getElementById("btn_query").style.marginTop = "0px";
+
+                // @ts-ignore
+                document.getElementsByClassName("mian_biao")[0].style.width = "1190px";
+                // @ts-ignore
+                document.getElementsByClassName("mian_biao")[0].style.marginLeft = "20px";
+
+                // @ts-ignore
+                return {status: code, data: {select: document.getElementById("custom_core_id").id}};
             } as any, currentPage, totalPage);
         },
         (data: any) => {
+            // TODO TEST
+            console.log("==========================================: ", data.select)
             renderHtml(maxNum, mode, startDate, endDate);
             ++currentPage;
             nextTransDetailPage(maxNum, mode, startDate, endDate, success, fail);
@@ -337,17 +369,47 @@ function setStartDateAndEndDateAndRefreshPage(maxNum: number, mode: string,
                     prdCodeView.value = argvProductCode || '';
                 }
 
+                // // ------------- 调整UI -------------
+                // // @ts-ignore
+                // document.getElementsByClassName("wapper")[1].style.backgroundColor = "#00f";
+                // // @ts-ignore
+                // document.getElementsByClassName("mian_left")[0].style.backgroundColor = "#f0f";
+                // // nDocument.getElementById("queryForm").style.width = "1015px";
+                // // nDocument.getElementById("queryForm").style.color = "#0ff";
+                // let queryForm = nDocument.getElementById("queryForm");
+                // queryForm.style.backgroundColor = "#0ff";
+                // prdCodeView.style.color = "#0f0";
+                // // queryForm.style.backgroundColor = "rgb(0, 0, 0)";
+                //
+                // let mian_right = nDocument.getElementsByClassName("mian_right")[0];
+                // mian_right.style.backgroundColor = "rgb(255,0,0)";
+                // // nDocument.getElementsByClassName("mian_title")[0].style = "background-color: #00f";
+                //
+                // // // 获取 wapper ，得到 iframe
+                // // let wapper = document.getElementsByClassName("wapper")[1];
+                // //
+                // // let div: any = document.createElement("div");
+                // // div.innerHTML = nDocument.getElementsByTagName("html")[0].innerHTML;
+                // // // div.innerHTML = ifm;
+                // // wapper.insertBefore(div, ifm);
+                // // // nDocument.getElementsByTagName("html")[0].style.display="none";
+                //
+                // // ------------- 调整UI -------------
+
                 startDateView.value = startDate;
                 endDateView.value = endDate;
 
                 btnQueryView.click();
-                return {status: '200', message: ''};
+                return {status: '200', message: '', data: {message: "1111"}};
             } as any, startDate, endDate, mode, argvProductCode);
         },
-        () => {
+        (data: any) => {
+            console.log("--------------: ", data.message);
             success(startDate, endDate);
         },
-        () => fail());
+        () => {
+            fail();
+        });
 }
 
 /** 对页数进行重置 随便数据股票代码，确保内容一定为空 */
@@ -381,6 +443,7 @@ function resetTotalPage(maxNum: number, mode: string, success: Function, fail: F
                 endDateView.value = endDate;
 
                 btnQueryView.click();
+
                 return {status: '200', message: ''};
             } as any, startDate, endDate, mode, argvProductCode);
         },
