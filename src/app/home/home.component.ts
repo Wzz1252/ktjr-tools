@@ -139,10 +139,13 @@ export class HomeComponent implements OnInit {
         }
 
         this.mkdirRecursive(logPath, () => {
-            this.writeFile(logPath + 'log-' + this.formatTimestamp(new Date()) + '.xlsx', xlsxObj);
+            this.writeFile(logPath + 'log-' + this.formatTimestamp(new Date()) + '.xlsx', xlsxObj,
+                () => {
+                    this.zone.run(() => this.openSnackBar("文件生成成功！"));
+                }, () => {
+                    this.zone.run(() => this.openSnackBar("文件生成失败，详情请看日志"));
+                });
         });
-
-        this.openSnackBar("文件生成成功");
     }
 
     private openSnackBar(message: string): void {
@@ -196,14 +199,16 @@ export class HomeComponent implements OnInit {
      * @param output 文件地址
      * @param dataUri 文件内容
      */
-    private writeFile(output: string, xlsxObj: any): void {
+    private writeFile(output: string, xlsxObj: any, success: Function, fail: Function): void {
         // @ts-ignore
-        fs.writeFile(output, XLSX.build(xlsxObj), "binary",
+        fs.writeFile(output, XLSX.build(xlsxObj),
             (error) => {
                 if (error) {
-                    Logger.log(TAG, "文件写入失败");
+                    Logger.log(TAG, "文件写入失败: ", error);
+                    fail();
                     return;
                 }
+                success();
             });
     }
 
@@ -215,7 +220,7 @@ export class HomeComponent implements OnInit {
         let mins = ('0' + timestamp.getMinutes()).slice(-2);
         let secs = ('0' + timestamp.getSeconds()).slice(-2);
         let milliseconds = ('00' + timestamp.getMilliseconds()).slice(-3);
-        return year + '-' + month + '-' + date + ' ' + hrs + ':' + mins + ':' + secs + ':' + milliseconds;
+        return year + '-' + month + '-' + date + ' ' + hrs + '-' + mins + '-' + secs + '-' + milliseconds;
     }
 
 }

@@ -63,14 +63,6 @@ page.open(argvUrl, function (status) {
         log('');
         // page.evaluate(addHeaderImage());
 
-        // parseAccInfoMenu(() => {
-        //     recursiveParseTransDetailMenu(0, 'loan', () => {
-        //         recursiveParseTransDetailMenu(0, 'advance',
-        //             () => exitProgram(true),
-        //             () => exitProgram(false));
-        //     }, () => exitProgram(false));
-        // }, () => exitProgram(false));
-
         parseAccInfoMenu(() => {
             recursiveParseTransDetailMenu(0, MODE_LOAN, () => {
                 recursiveParseTransDetailMenu(0, MODE_LOAN_CODE, () => {
@@ -368,33 +360,6 @@ function setStartDateAndEndDateAndRefreshPage(maxNum: number, mode: string,
                 } else {
                     prdCodeView.value = argvProductCode || '';
                 }
-
-                // // ------------- 调整UI -------------
-                // // @ts-ignore
-                // document.getElementsByClassName("wapper")[1].style.backgroundColor = "#00f";
-                // // @ts-ignore
-                // document.getElementsByClassName("mian_left")[0].style.backgroundColor = "#f0f";
-                // // nDocument.getElementById("queryForm").style.width = "1015px";
-                // // nDocument.getElementById("queryForm").style.color = "#0ff";
-                // let queryForm = nDocument.getElementById("queryForm");
-                // queryForm.style.backgroundColor = "#0ff";
-                // prdCodeView.style.color = "#0f0";
-                // // queryForm.style.backgroundColor = "rgb(0, 0, 0)";
-                //
-                // let mian_right = nDocument.getElementsByClassName("mian_right")[0];
-                // mian_right.style.backgroundColor = "rgb(255,0,0)";
-                // // nDocument.getElementsByClassName("mian_title")[0].style = "background-color: #00f";
-                //
-                // // // 获取 wapper ，得到 iframe
-                // // let wapper = document.getElementsByClassName("wapper")[1];
-                // //
-                // // let div: any = document.createElement("div");
-                // // div.innerHTML = nDocument.getElementsByTagName("html")[0].innerHTML;
-                // // // div.innerHTML = ifm;
-                // // wapper.insertBefore(div, ifm);
-                // // // nDocument.getElementsByTagName("html")[0].style.display="none";
-                //
-                // // ------------- 调整UI -------------
 
                 startDateView.value = startDate;
                 endDateView.value = endDate;
