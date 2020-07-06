@@ -89,8 +89,13 @@ function initSettings() {
     }
 
     argvWaitTime = argvWaitTime || 1000;
-    maxQueryDay = Math.ceil(dateDiff(argvStartAdvanceDate, argvEndAdvanceDate) / QUERY_MAX_DAYS);
-    log("-------------------初始结果：", maxQueryDay);
+
+    // 如果返回的刚好是183，那么通过+1，将其改为2次查询
+    let queryDay = dateDiff(argvStartAdvanceDate, argvEndAdvanceDate);
+    if (queryDay === 183) {
+        queryDay += 1;
+    }
+    maxQueryDay = Math.ceil(queryDay / QUERY_MAX_DAYS);
 
     log('');
     log('>>>>>>>>> 基本设置 <<<<<<<<<');
