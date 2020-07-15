@@ -34,9 +34,9 @@ export default class PDFManager {
     public static jpegSort(filesList: Array<any>) {
         let compare = function (o1, o2) {
             if (o1.filename < o2.filename) {
-                return -1;
-            } else if (o1.filename > o2.filename) {
                 return 1;
+            } else if (o1.filename > o2.filename) {
+                return -1;
             } else {
                 return 0;
             }

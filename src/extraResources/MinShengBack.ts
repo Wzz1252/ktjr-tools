@@ -63,13 +63,23 @@ page.open(argvUrl, function (status) {
         log('');
         // page.evaluate(addHeaderImage());
 
+        // parseAccInfoMenu(() => {
+        //     recursiveParseTransDetailMenu(0, MODE_LOAN, () => {
+        //         recursiveParseTransDetailMenu(0, MODE_LOAN_CODE, () => {
+        //             recursiveParseTransDetailMenu(0, MODE_ADVANCE,
+        //                 () => exitProgram(true),
+        //                 () => exitProgram(false));
+        //         }, fail => exitProgram(false));
+        //     }, () => exitProgram(false));
+        // }, () => exitProgram(false));
+
         parseAccInfoMenu(() => {
-            recursiveParseTransDetailMenu(0, MODE_LOAN, () => {
-                recursiveParseTransDetailMenu(0, MODE_LOAN_CODE, () => {
-                    recursiveParseTransDetailMenu(0, MODE_ADVANCE,
-                        () => exitProgram(true),
-                        () => exitProgram(false));
-                }, fail => exitProgram(false));
+            recursiveParseTransDetailMenu(0, MODE_LOAN_CODE, () => {
+                recursiveParseTransDetailMenu(0, MODE_ADVANCE, () => {
+                    recursiveParseTransDetailMenu(0, MODE_LOAN, () => {
+                        exitProgram(true);
+                    }, () => exitProgram(false))
+                }, () => exitProgram(false));
             }, () => exitProgram(false));
         }, () => exitProgram(false));
     } else {
@@ -90,7 +100,7 @@ function initSettings() {
 
     argvWaitTime = argvWaitTime || 1000;
 
-    // 如果返回的刚好是183，那么通过+1，将其改为2次查询
+    // 如果返回的刚好是183，那么通过+1，将其改为2次查询，确保最初一天不被丢失
     let queryDay = dateDiff(argvStartAdvanceDate, argvEndAdvanceDate);
     if (queryDay === 183) {
         queryDay += 1;
@@ -138,8 +148,8 @@ function parseAccInfoMenu(success: Function, fail: Function) {
         userAccount = data.account;
         userAccountName = data.accountName;
         setScrollHeight();
-        page.render(getOutputPath(argvContractNo + '-1账号' + IMAGE_FORMAT));
-        log('渲染成功，文件路径：' + getOutputPath(argvContractNo + '-1账号' + IMAGE_FORMAT));
+        page.render(getOutputPath(argvContractNo + '-3账号' + IMAGE_FORMAT));
+        log('渲染成功，文件路径：' + getOutputPath(argvContractNo + '-3账号' + IMAGE_FORMAT));
         log('');
         success();
     }, () => {
@@ -374,7 +384,6 @@ function setStartDateAndEndDateAndRefreshPage(maxNum: number, mode: string,
             } as any, startDate, endDate, mode, argvProductCode);
         },
         (data: any) => {
-            console.log("--------------: ", data.message);
             success(startDate, endDate);
         },
         () => {
@@ -488,10 +497,11 @@ function renderHtml(maxNum: number, mode: string, startDate: string, endDate: st
     } else if (mode === MODE_LOAN_CODE) {
         filePrefix = '2放款流水_C';
     } else {
-        filePrefix = '3垫付流水';
+        filePrefix = '1垫付流水';
     }
     log('准备完成，开始渲染...');
-    let fileName = argvContractNo + '-' + filePrefix + '-' + startDate + '-' + endDate + '-PAGE-' + autoFilZero(currentPage, 4) + IMAGE_FORMAT;
+    let fileName = argvContractNo + '-' + filePrefix + '-' + startDate + '-' + endDate + '-PAGE-' +
+        autoFilZero((totalPage + 1) - currentPage, 4) + IMAGE_FORMAT;
     page.render(getOutputPath(fileName));
     log('渲染成功，文件路径：' + getOutputPath(fileName));
     log('');
@@ -585,9 +595,9 @@ function getStartAndEndDate2(reDay: number, start: string, end: string): any {
 function getLoanDate(date: string) {
     let r = {startDate: '', endDate: ''};
     let s = new Date(date);
-    s.setDate(s.getDate() - 5);
+    s.setDate(s.getDate() - 15);
     let e = new Date(date);
-    e.setDate(e.getDate() + 5);
+    e.setDate(e.getDate() + 15);
     r.startDate = dataCompletion(s.getFullYear()) + dataCompletion(s.getMonth() + 1) + dataCompletion(s.getDate());
     r.endDate = dataCompletion(e.getFullYear()) + dataCompletion(e.getMonth() + 1) + dataCompletion(e.getDate());
     return r;
